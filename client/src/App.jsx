@@ -4,6 +4,8 @@ import Layout from './components/Layout'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import Itineraries from './pages/Itineraries'
+import Profile from './pages/Profile'
 
 function App() {
   return (
@@ -16,9 +18,8 @@ function App() {
         {/* Rutas protegidas con layout */}
         <Route path="/" element={<Layout />}>
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="itineraries" element={<div className="text-center py-20"><h2 className="text-2xl font-bold">Página de Itinerarios</h2><p className="text-muted-foreground">Esta página está en construcción</p></div>} />
-          <Route path="budget" element={<div className="text-center py-20"><h2 className="text-2xl font-bold">Página de Presupuesto</h2><p className="text-muted-foreground">Esta página está en construcción</p></div>} />
-          <Route path="profile" element={<div className="text-center py-20"><h2 className="text-2xl font-bold">Página de Perfil</h2><p className="text-muted-foreground">Esta página está en construcción</p></div>} />
+          <Route path="itineraries" element={<Itineraries />} />
+          <Route path="profile" element={<Profile />} />
         </Route>
         
         {/* Redireccionar rutas no encontradas */}
