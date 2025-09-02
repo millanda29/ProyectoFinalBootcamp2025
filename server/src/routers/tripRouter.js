@@ -1,11 +1,10 @@
-/*import express from "express";
-import tripController from "../controllers/tripController.js";
+const express = require('express');
+const tripController = require('../controllers/tripController');
 
 const router = express.Router();
 
-// Rutas de viajes
-router.get("/", tripController.getAllTrips);
-router.post("/", tripController.createTrip);
-router.get("/:id", tripController.getTripById);
+// Ejemplo de rutas para viajes
+router.get('/', tripController.getAllTrips);
+router.post('/', tripController.createTrip);
 
-export default router;}*/
+export default router;

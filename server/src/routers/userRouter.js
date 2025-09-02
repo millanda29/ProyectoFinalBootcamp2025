@@ -1,10 +1,13 @@
-import express from "express";
-import userController from "../controllers/userController.js";
+import express from 'express';
+import authRouter from '../auth/authRouter.js';
+import userController from '../controllers/userController.js';
 
 const router = express.Router();
 
-// Rutas de usuarios
-router.get("/", userController.getAllUsers);
-router.get("/:id", userController.getUserById);
+// Rutas de autenticación (registro, login, etc)
+router.use('/', authRouter);
+
+// Ejemplo de ruta protegida para obtener perfil
+router.get('/me', userController.getUserProfile);
 
 export default router;

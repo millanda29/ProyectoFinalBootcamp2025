@@ -1,12 +1,42 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true, lowercase: true, index: true },
-  passwordHash: { type: String, required: true },   // guarda solo hash
-  fullName: { type: String, required: true },
-  avatarUrl: String,
-  roles: { type: [String], enum: ["admin", "traveler"], default: ["traveler"] },
-  isActive: { type: Boolean, default: true }
-}, { timestamps: true });
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+  },
+  passwordHash: {
+    type: String,
+    required: true,
+  },
+  fullName: {
+    type: String,
+    required: true,
+  },
+  avatarUrl: {
+    type: String,
+    default: 'https://cdn/avatars/default.png',
+  },
+  roles: {
+    type: [String],
+    default: ['traveler'],
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
-export default mongoose.model("User", userSchema);
+const User = mongoose.model('User', userSchema);
+
+export default User;

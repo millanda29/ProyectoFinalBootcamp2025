@@ -1,24 +1,34 @@
-import dotenv from "dotenv";
-import mongoose from "mongoose";
-import app from "./src/app.js";
+import 'dotenv/config';
+import app from './src/app.js';
+const express = require('express');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+const authRouter = require('./src/auth/authRouter');
+const errorHandler = require('./src/middlewares/errorHandler');
+
 
 dotenv.config();
 
-// Configuración desde .env
-const PORT = process.env.PORT || 4000;
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/travelmate";
+const PORT = process.env.PORT || 3000;
 
-// Conexión a MongoDB
-mongoose.connect(MONGO_URI)
-  .then(() => {
-    console.log("✅ Conectado a MongoDB");
+// Middleware
+app.use(express.json());
+app.use('/api/auth', authRouter);
+app.use(errorHandler);
 
-    // Levantar servidor Express
-    app.listen(PORT, () => {
-      console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error("❌ Error al conectar con MongoDB:", err);
-    process.exit(1);
-  });
+// Database connection
+mongoose.connect(process.env.DB_CONNECTION_STRING, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
+.then(() => {
+    console.log('Connected to the database');
+})
+.catch(err => {
+    console.error('Database connection error:', err);
+});
+
+// Start the server
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
