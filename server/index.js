@@ -1,9 +1,24 @@
-import express from 'express';
-const app = express();
-const PORT = process.env.PORT || 5000;
+import dotenv from "dotenv";
+import mongoose from "mongoose";
+import app from "./src/app.js";
 
-app.get('/', (req, res) => {
-  res.send('Server is running');
-});
+dotenv.config();
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Configuración desde .env
+const PORT = process.env.PORT || 4000;
+const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/travelmate";
+
+// Conexión a MongoDB
+mongoose.connect(MONGO_URI)
+  .then(() => {
+    console.log("✅ Conectado a MongoDB");
+
+    // Levantar servidor Express
+    app.listen(PORT, () => {
+      console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("❌ Error al conectar con MongoDB:", err);
+    process.exit(1);
+  });
