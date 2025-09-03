@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const refreshTokenSchema = new mongoose.Schema({
   userId: {
@@ -17,10 +17,8 @@ const refreshTokenSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
-    expires: '30d'
+    expires: '30d' // expira automáticamente después de 30 días
   }
 });
 
-module.exports = mongoose.model('RefreshToken', refreshTokenSchema);
-
-
+export default mongoose.model('RefreshToken', refreshTokenSchema);
