@@ -17,7 +17,6 @@ const Login = () => {
 
   // Redirigir si ya está autenticado
   useEffect(() => {
-    console.log('Login useEffect - accessToken:', accessToken, 'loading:', loading); // Debug
     if (!loading && accessToken) {
       console.log('Redirecting to dashboard...'); // Debug
       navigate('/dashboard');

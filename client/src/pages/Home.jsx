@@ -14,15 +14,24 @@ const Home = () => {
           <Link to="/" className="transition-transform hover:scale-105">
             <Logo size="default" variant="light" />
           </Link>
-          <Link to="/login">
-            <Button 
-              variant="outline" 
-              className="bg-white/10 border-white/30 text-white hover:bg-yellow-400 hover:text-blue-900 hover:border-yellow-400 backdrop-blur-sm transition-all duration-300 font-semibold"
-            >
-              <LogIn className="w-4 h-4 mr-2" />
-              Iniciar Sesión
-            </Button>
-          </Link>
+          <div className="flex gap-3">
+            <Link to="/login">
+              <Button 
+                variant="ghost" 
+                className="text-white hover:bg-white/10 backdrop-blur-sm transition-all duration-300 font-medium"
+              >
+                Iniciar Sesión
+              </Button>
+            </Link>
+            <Link to="/register">
+              <Button 
+                variant="outline" 
+                className="bg-white/10 border-white/30 text-white hover:bg-yellow-400 hover:text-blue-900 hover:border-yellow-400 backdrop-blur-sm transition-all duration-300 font-semibold"
+              >
+                Registrarse
+              </Button>
+            </Link>
+          </div>
         </div>
       </nav>
 
@@ -45,14 +54,14 @@ const Home = () => {
               Obtén itinerarios inteligentes, presupuestos precisos y recomendaciones personalizadas.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/login">
+              <Link to="/register">
                 <Button size="lg" className="bg-yellow-400 hover:bg-yellow-300 text-blue-900 font-bold px-10 py-4 text-lg shadow-2xl hover:shadow-yellow-400/25 transition-all duration-300 hover:-translate-y-1">
                   Comenzar Gratis
                 </Button>
               </Link>
-              <Link to="/dashboard">
+              <Link to="/login">
                 <Button variant="outline" size="lg" className="border-2 border-yellow-400/50 text-yellow-400 hover:bg-yellow-400 hover:text-blue-900 px-10 py-4 text-lg backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 font-semibold">
-                  Ver Demo
+                  Iniciar Sesión
                 </Button>
               </Link>
             </div>

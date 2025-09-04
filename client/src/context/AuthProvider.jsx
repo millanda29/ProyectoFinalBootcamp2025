@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { login as apiLogin, register as apiRegister, refreshToken, logout as apiLogout } from "../data/apiAuth";
+import { login as apiLogin, register as apiRegister, logout as apiLogout } from "../data/apiAuth";
 import { AuthContext } from "./AuthContext";
 
 const AuthProvider = ({ children }) => {
@@ -7,53 +7,39 @@ const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [hasLoggedOut, setHasLoggedOut] = useState(false);
 
-  // Función para refrescar token, memoizada
-  const verifyToken = useCallback(async () => {
-    try {
-      // Si el usuario hizo logout manual, no intentar refresh
-      if (hasLoggedOut) {
+  // Ejecuta verificación al montar SOLO UNA VEZ
+  useEffect(() => {
+    let isInitialized = false;
+    
+    const initializeAuth = async () => {
+      // Evitar ejecuciones múltiples
+      if (isInitialized) return;
+      isInitialized = true;
+      
+      try {
+        // Primero verificar si hay token en localStorage
+        const localToken = localStorage.getItem("token");
+        if (localToken) {
+          console.log('Found local token:', localToken); // Debug
+          setAccessToken(localToken);
+          setLoading(false);
+          return;
+        }
+
+        // Si no hay token local, NO intentar refresh automáticamente
+        console.log('No local token found, user not authenticated'); // Debug
         setAccessToken(null);
         setLoading(false);
-        return;
-      }
-
-      // Primero verificar si hay token en localStorage
-      const localToken = localStorage.getItem("token");
-      if (localToken) {
-        console.log('Found local token:', localToken); // Debug
-        setAccessToken(localToken);
-        setLoading(false);
-        return;
-      }
-
-      console.log('No local token, trying refresh...'); // Debug
-      // Si no hay token local, intentar refresh
-      const data = await refreshToken();
-      console.log('Refresh response:', data); // Debug
-      
-      const token = data?.accessToken || data?.token;
-      if (token) {
-        setAccessToken(token);
-        localStorage.setItem("token", token);
-      } else {
+      } catch (err) {
+        console.error("Token verification failed:", err.message);
         setAccessToken(null);
         localStorage.removeItem("token");
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Token refresh failed:", err.message);
-      setAccessToken(null);
-      localStorage.removeItem("token");
-    } finally {
-      setLoading(false);
-    }
-  }, [hasLoggedOut]);
+    };
 
-  // Ejecuta verificación al montar, pero no después de logout
-  useEffect(() => {
-    if (!hasLoggedOut) {
-      verifyToken();
-    }
-  }, [verifyToken, hasLoggedOut]);
+    initializeAuth();
+  }, []); // Sin dependencias para ejecutar solo una vez
 
   // Reset hasLoggedOut después de un tiempo para permitir login futuro
   useEffect(() => {

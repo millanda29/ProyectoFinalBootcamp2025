@@ -5,6 +5,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Itineraries from "./pages/Itineraries";
 import Profile from "./pages/Profile";
@@ -16,6 +17,7 @@ function App() {
         {/* rutas públicas */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         {/* rutas protegidas */}
         <Route
