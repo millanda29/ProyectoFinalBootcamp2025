@@ -1,40 +1,51 @@
 import User from '../models/User.js';
-import bcrypt from 'bcrypt';
-import generateToken from '../utils/generateToken.js';
+import Trip from '../models/Trip.js';
 
 const userService = {
-  async registerUser({ email, password, fullName }) {
-    const existingUser = await User.findOne({ email });
-    if (existingUser) throw new Error('User already exists');
 
-    const passwordHash = await bcrypt.hash(password, 10);
-    const newUser = new User({ email, passwordHash, fullName, roles: ['traveler'], isActive: true });
-    await newUser.save();
-    return newUser;
+  // Obtener perfil de usuario por ID
+  async getProfile(userId) {
+    const user = await User.findById(userId)
+      .select('-passwordHash')
+      .populate('createdTrips');
+    if (!user) throw new Error('Usuario no encontrado.');
+    return user;
   },
 
-  async authenticateUser(email, password) {
-    const user = await User.findOne({ email });
-    if (!user) throw new Error('Invalid email or password');
-
-    const isMatch = await bcrypt.compare(password, user.passwordHash);
-    if (!isMatch) throw new Error('Invalid email or password');
-
-    const token = generateToken(user);
-    return { user, token };
+  // Editar perfil
+  async updateProfile(userId, updateData) {
+    const allowedFields = ['fullName','avatarUrl','roles','isActive'];
+    const data = {};
+    for (const key of allowedFields) {
+      if (updateData[key] !== undefined) data[key] = updateData[key];
+    }
+    const user = await User.findByIdAndUpdate(userId, data, { new: true }).select('-passwordHash');
+    if (!user) throw new Error('Usuario no encontrado.');
+    return user;
   },
 
-  async getAllUsers() {
-    return await User.find().select('-passwordHash');
+  // Cambiar contraseña
+  async changePassword(userId, currentPassword, newPassword) {
+    const user = await User.findById(userId);
+    if (!user) throw new Error('Usuario no encontrado.');
+
+    // Verificar contraseña actual
+    const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!valid) throw new Error('Contraseña actual incorrecta.');
+
+    // Hashear nueva contraseña y guardar
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    return { message: 'Contraseña actualizada correctamente.' };
   },
 
-  async getUserById(userId) {
-    return await User.findById(userId).select('-passwordHash');
-  },
+  // Historial de viajes
+  async getTravelHistory(userId) {
+    const trips = await Trip.find({ userId }).sort({ startDate: -1 });
+    return trips;
+  }
 
-  async updateUser(userId, updatedData) {
-    return await User.findByIdAndUpdate(userId, updatedData, { new: true }).select('-passwordHash');
-  },
 };
 
 export default userService;

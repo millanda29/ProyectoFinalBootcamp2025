@@ -1,19 +1,54 @@
 import authService from './authService.js';
 
-export const register = async (req, res) => {
-  try {
-    const { token } = await authService.register(req.body);
-    res.status(201).json({ token });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+const authController = {
+
+  // Registro de usuario
+  register: async (req, res, next) => {
+    try {
+      const { token, refreshToken } = await authService.register(req.body);
+      res.status(201).json({
+        token,
+        refreshToken
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  // Login de usuario
+  login: async (req, res, next) => {
+    try {
+      // ✅ Extraer los campos directamente
+      const { email, password } = req.body;
+
+      const { user, token, refreshToken } = await authService.login({ email, password });
+
+      res.json({ user, token, refreshToken });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  // Refresh token
+  refresh: async (req, res, next) => {
+    try {
+      const { token, user } = await authService.refreshToken(req.body.refreshToken);
+      res.json({ token, user });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  // Logout
+  logout: async (req, res, next) => {
+    try {
+      await authService.logout(req.body.refreshToken);
+      res.json({ message: 'Logout exitoso' });
+    } catch (err) {
+      next(err);
+    }
   }
+
 };
 
-export const login = async (req, res) => {
-  try {
-    const { token } = await authService.login(req.body.email, req.body.password);
-    res.status(200).json({ token });
-  } catch (error) {
-    res.status(401).json({ message: error.message });
-  }
-};
+export default authController;

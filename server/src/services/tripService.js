@@ -1,4 +1,4 @@
-import Trip from '../models/Trip.js';
+/*import Trip from '../models/Trip.js';
 
 const tripService = {
   async getAllTrips() {
@@ -25,3 +25,4 @@ const tripService = {
 };
 
 export default tripService;
+*/

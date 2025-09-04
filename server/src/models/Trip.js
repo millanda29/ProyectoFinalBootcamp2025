@@ -23,6 +23,11 @@ const CostSchema = new mongoose.Schema({
   quantity: { type: Number, default: 1, min: 0 }
 }, { _id: true });
 
+// Virtual para costo total
+CostSchema.virtual('total').get(function() {
+  return this.amount * this.quantity;
+});
+
 const AiMessageSchema = new mongoose.Schema({
   role: { type: String, enum: ["user","assistant","system"], required: true },
   content: { type: String, required: true },
@@ -40,8 +45,9 @@ const tripSchema = new mongoose.Schema({
   title: { type: String, required: true },
   destination: { type: String, required: true },
   startDate: { type: Date, required: true },
-  endDate:   { type: Date, required: true },
+  endDate: { type: Date, required: true },
   partySize: { type: Number, default: 1, min: 1 },
+  status: { type: String, enum: ['planned','ongoing','completed'], default: 'planned' },
   itinerary: [DaySchema],
   costs: [CostSchema],
   aiConversations: [{
@@ -50,5 +56,18 @@ const tripSchema = new mongoose.Schema({
   }],
   reports: [ReportSchema]
 }, { timestamps: true });
+
+// Validación de fechas
+tripSchema.pre('save', function(next) {
+  if (this.endDate < this.startDate) {
+    return next(new Error('La fecha de fin no puede ser anterior a la fecha de inicio.'));
+  }
+  next();
+});
+
+// Método virtual para calcular presupuesto total
+tripSchema.virtual('totalBudget').get(function() {
+  return this.costs.reduce((sum, c) => sum + (c.amount * c.quantity), 0);
+});
 
 export default mongoose.model("Trip", tripSchema);

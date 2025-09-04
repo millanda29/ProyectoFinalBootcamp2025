@@ -1,8 +1,19 @@
-import tripService from '../services/tripService.js';
+/*import tripService from '../services/tripService.js';
 
+// Solo admin puede ver todos los viajes
 const getAllTrips = async (req, res, next) => {
   try {
     const trips = await tripService.getAllTrips();
+    res.json(trips);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Historial del usuario autenticado
+const getMyTrips = async (req, res, next) => {
+  try {
+    const trips = await tripService.getTripsByUser(req.user.id);
     res.json(trips);
   } catch (err) {
     next(err);
@@ -21,7 +32,10 @@ const getTripById = async (req, res, next) => {
 
 const createTrip = async (req, res, next) => {
   try {
-    const newTrip = await tripService.createTrip(req.body);
+    const newTrip = await tripService.createTrip({
+      ...req.body,
+      userId: req.user.id, // asociar al usuario logueado
+    });
     res.status(201).json(newTrip);
   } catch (err) {
     next(err);
@@ -48,4 +62,5 @@ const deleteTrip = async (req, res, next) => {
   }
 };
 
-export default { getAllTrips, getTripById, createTrip, updateTrip, deleteTrip };
+export default { getAllTrips, getMyTrips, getTripById, createTrip, updateTrip, deleteTrip };
+*/
