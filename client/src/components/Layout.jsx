@@ -1,18 +1,27 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs'
 import { Plane, MessageCircle, MapPin, DollarSign, User, LogOut } from 'lucide-react'
 import Logo from './Logo'
+import { AuthContext } from '../context/AuthContext'
 
 const Layout = () => {
   const location = useLocation()
   const navigate = useNavigate()
+  const { logout } = useContext(AuthContext)
   const currentPath = location.pathname
 
-  const handleLogout = () => {
-    navigate('/')
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // El ProtectedRoute se encargará de la redirección
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // En caso de error, forzar navegación
+      navigate('/');
+    }
   }
 
   const navItems = [
@@ -92,27 +101,6 @@ const getCurrentTab = (path) => {
   if (path === '/itineraries') return 'itineraries'
   if (path === '/profile') return 'profile'
   return 'chat'
-}
-
-const getCurrentSectionName = (path) => {
-  if (path === '/dashboard') return 'Chat IA'
-  if (path === '/itineraries') return 'Mis Viajes'
-  if (path === '/profile') return 'Mi Perfil'
-  return 'Chat IA'
-}
-
-const getCurrentSectionDescription = (path) => {
-  if (path === '/dashboard') return 'Planifica tus viajes con nuestro asistente inteligente'
-  if (path === '/itineraries') return 'Gestiona y revisa todos tus itinerarios de viaje'
-  if (path === '/profile') return 'Configura tu perfil y preferencias de viaje'
-  return 'Planifica tus viajes con nuestro asistente inteligente'
-}
-
-const getCurrentSectionColor = (path) => {
-  if (path === '/dashboard') return 'bg-blue-500'
-  if (path === '/itineraries') return 'bg-green-500'
-  if (path === '/profile') return 'bg-purple-500'
-  return 'bg-blue-500'
 }
 
 export default Layout
