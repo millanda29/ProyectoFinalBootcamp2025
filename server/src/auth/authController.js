@@ -5,25 +5,31 @@ const authController = {
   // Registro de usuario
   register: async (req, res, next) => {
     try {
-      const { token, refreshToken } = await authService.register(req.body);
+      const { token, refreshToken, user } = await authService.register(req.body);
       res.status(201).json({
+        success: true,
         token,
-        refreshToken
+        refreshToken,
+        user
       });
     } catch (err) {
       next(err);
     }
   },
 
-  // Login de usuario
+  // Login
   login: async (req, res, next) => {
     try {
-      // ✅ Extraer los campos directamente
       const { email, password } = req.body;
 
       const { user, token, refreshToken } = await authService.login({ email, password });
 
-      res.json({ user, token, refreshToken });
+      res.json({ 
+        success: true,
+        user, 
+        token, 
+        refreshToken 
+      });
     } catch (err) {
       next(err);
     }
@@ -32,8 +38,22 @@ const authController = {
   // Refresh token
   refresh: async (req, res, next) => {
     try {
-      const { token, user } = await authService.refreshToken(req.body.refreshToken);
-      res.json({ token, user });
+      const { refreshToken } = req.body;
+      
+      if (!refreshToken) {
+        return res.status(400).json({
+          success: false,
+          message: 'Refresh token es requerido'
+        });
+      }
+
+      const { token, refreshToken: newRefreshToken, user } = await authService.refreshToken(refreshToken);
+      res.json({ 
+        success: true,
+        token, 
+        refreshToken: newRefreshToken, 
+        user 
+      });
     } catch (err) {
       next(err);
     }
@@ -43,7 +63,10 @@ const authController = {
   logout: async (req, res, next) => {
     try {
       await authService.logout(req.body.refreshToken);
-      res.json({ message: 'Logout exitoso' });
+      res.json({ 
+        success: true,
+        message: 'Logout exitoso' 
+      });
     } catch (err) {
       next(err);
     }

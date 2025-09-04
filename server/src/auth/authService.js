@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import User from '../models/User.js';
 import RefreshToken from '../models/RefreshToken.js';
 
@@ -9,30 +10,43 @@ const JWT_EXPIRES = '1h'; // token válido 1 hora
 const authService = {
 
   // Registro de usuario
-  async login({ email, password }) {
-    // ✅ Buscar solo por string email
-    const user = await User.findOne({ email });
-    if (!user) throw new Error('Usuario no encontrado');
+  async register({ email, password, fullName }) {
+    // Verificar si el usuario ya existe
+    const existingUser = await User.findOne({ email });
+    if (existingUser) throw new Error('El usuario ya existe.');
 
-    // Validar contraseña
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) throw new Error('Contraseña incorrecta');
+    // Crear nuevo usuario
+    const user = new User({
+      email,
+      passwordHash: await bcrypt.hash(password, 10),
+      fullName,
+      roles: ['traveler'] // rol por defecto
+    });
 
-    // Generar access token
-    const token = jwt.sign(
-      { id: user._id, roles: user.roles },
-      process.env.JWT_SECRET,
-      { expiresIn: '15m' }
-    );
+    await user.save();
+
+    // Generar tokens
+    const token = jwt.sign({ id: user._id, roles: user.roles }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
     // Generar refresh token
-    const refreshToken = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    const refreshToken = new RefreshToken({
+      userId: user._id,
+      token: crypto.randomBytes(40).toString('hex'),
+      expiresAt: new Date(Date.now() + 7*24*60*60*1000)
+    });
+    await refreshToken.save();
 
-    return { user, token, refreshToken };
+    return { 
+      token, 
+      refreshToken: refreshToken.token, 
+      user: {
+        id: user._id,
+        email: user.email,
+        fullName: user.fullName,
+        roles: user.roles,
+        avatarUrl: user.avatarUrl
+      }
+    };
   },
 
 
@@ -52,16 +66,22 @@ const authService = {
     // Generar refresh token
     const refreshToken = new RefreshToken({
       userId: user._id,
-      token: jwt.sign(
-        { id: user._id, email: user.email, roles: user.roles },
-        JWT_SECRET,
-        { expiresIn: '7d' } // opcional, duración más larga que el access token
-      ),
+      token: crypto.randomBytes(40).toString('hex'),
       expiresAt: new Date(Date.now() + 7*24*60*60*1000)
     });
     await refreshToken.save();
 
-    return { token, refreshToken: refreshToken.token };
+    return { 
+      token, 
+      refreshToken: refreshToken.token, 
+      user: {
+        id: user._id,
+        email: user.email,
+        fullName: user.fullName,
+        roles: user.roles,
+        avatarUrl: user.avatarUrl
+      }
+    };
   },
 
   // Refresh token
@@ -69,11 +89,38 @@ const authService = {
     const stored = await RefreshToken.findOne({ token: oldToken });
     if (!stored) throw new Error('Refresh token inválido.');
 
+    // Verificar si el refresh token ha expirado
+    if (stored.expiresAt < new Date()) {
+      await RefreshToken.deleteOne({ _id: stored._id });
+      throw new Error('Refresh token expirado.');
+    }
+
     const user = await User.findById(stored.userId);
     if (!user) throw new Error('Usuario no encontrado.');
 
+    // Generar nuevo access token
     const token = jwt.sign({ id: user._id, roles: user.roles }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
-    return { token, user };
+    
+    // Generar nuevo refresh token
+    await RefreshToken.deleteOne({ _id: stored._id }); // Eliminar el viejo
+    const newRefreshToken = new RefreshToken({
+      token: crypto.randomBytes(40).toString('hex'),
+      userId: user._id,
+      expiresAt: new Date(Date.now() + 7*24*60*60*1000) // 7 días
+    });
+    await newRefreshToken.save();
+
+    return { 
+      token, 
+      refreshToken: newRefreshToken.token,
+      user: {
+        id: user._id,
+        email: user.email,
+        fullName: user.fullName,
+        roles: user.roles,
+        avatarUrl: user.avatarUrl
+      }
+    };
   },
 
   // Logout

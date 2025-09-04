@@ -24,168 +24,40 @@ async function seed() {
     // 🔹 Usuarios de ejemplo
     const users = await User.insertMany([
       {
-        email: "maria.garcia@email.com",
-        passwordHash: await bcrypt.hash("Password123!", 10),
-        fullName: "María García",
-        phone: "+34 612 345 678",
-        location: "Madrid, España",
-        bio: "Apasionada por los viajes y la fotografía. Me encanta descubrir nuevas culturas y compartir mis experiencias.",
-        website: "https://mariaviajes.blog",
-        roles: ["traveler"],
-        avatarUrl: "https://images.unsplash.com/photo-1494790108755-2616b612b494",
-        isActive: true,
-        lastLogin: new Date(),
-        createdAt: new Date("2023-08-14"), // Miembro desde 14/8/2023
-        travelPreferences: {
-          preferredCurrency: "EUR",
-          preferredLanguage: "es",
-          travelStyle: "adventure",
-          favoriteDestination: "Japón",
-          budgetRange: {
-            min: 800,
-            max: 3000,
-            currency: "EUR"
-          },
-          accommodationPreference: "hotel",
-          transportPreference: "flight"
-        },
-        notifications: {
-          email: true,
-          push: true,
-          tripReminders: true,
-          promotions: false
-        },
-        stats: {
-          tripsCompleted: 12,
-          countriesVisited: ["España", "Francia", "Italia", "Japón", "Tailandia", "Portugal"],
-          totalSpent: 8500,
-          totalSaved: 1200
-        }
-      },
-      {
         email: "alice@travelmate.com",
         passwordHash: await bcrypt.hash("Password123!", 10),
         fullName: "Alice Johnson",
-        phone: "+1 555 123 4567",
-        location: "New York, USA",
-        bio: "Travel enthusiast and food lover. Always planning my next adventure!",
         roles: ["traveler"],
         avatarUrl: "https://images.unsplash.com/photo-1494790108755-2616b612b494",
         isActive: true,
         lastLogin: new Date(),
-        travelPreferences: {
-          preferredCurrency: "USD",
-          preferredLanguage: "en",
-          travelStyle: "cultural",
-          favoriteDestination: "Italia",
-          budgetRange: {
-            min: 1000,
-            max: 4000,
-            currency: "USD"
-          },
-          accommodationPreference: "airbnb",
-          transportPreference: "any"
-        },
-        stats: {
-          tripsCompleted: 8,
-          countriesVisited: ["USA", "Italy", "France", "Spain"],
-          totalSpent: 12000,
-          totalSaved: 800
-        }
       },
       {
         email: "bob@travelmate.com", 
         passwordHash: await bcrypt.hash("Secret456$", 10),
         fullName: "Bob Smith",
-        phone: "+44 20 7946 0958",
-        location: "London, UK",
-        bio: "Adventure seeker and backpacker. Love exploring off the beaten path destinations.",
         roles: ["traveler"],
         avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
         isActive: true,
         lastLogin: new Date(),
-        travelPreferences: {
-          preferredCurrency: "GBP",
-          preferredLanguage: "en",
-          travelStyle: "budget",
-          favoriteDestination: "Nepal",
-          budgetRange: {
-            min: 300,
-            max: 1500,
-            currency: "GBP"
-          },
-          accommodationPreference: "hostel",
-          transportPreference: "bus"
-        },
-        stats: {
-          tripsCompleted: 15,
-          countriesVisited: ["UK", "Nepal", "India", "Thailand", "Vietnam", "Cambodia"],
-          totalSpent: 6500,
-          totalSaved: 2100
-        }
       },
       {
         email: "admin@travelmate.com",
         passwordHash: await bcrypt.hash("Admin789#", 10),
         fullName: "Sarah Admin",
-        phone: "+1 555 999 0000",
-        location: "San Francisco, USA",
-        bio: "TravelMate platform administrator. Here to help you have amazing travel experiences!",
         roles: ["admin"],
         avatarUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80",
         isActive: true,
         lastLogin: new Date(),
-        travelPreferences: {
-          preferredCurrency: "USD",
-          preferredLanguage: "en",
-          travelStyle: "business",
-          favoriteDestination: "Singapore",
-          budgetRange: {
-            min: 2000,
-            max: 8000,
-            currency: "USD"
-          },
-          accommodationPreference: "hotel",
-          transportPreference: "flight"
-        },
-        stats: {
-          tripsCompleted: 3,
-          countriesVisited: ["USA", "Singapore", "Germany"],
-          totalSpent: 15000,
-          totalSaved: 500
-        }
       },
       {
         email: "carlos@travelmate.com",
         passwordHash: await bcrypt.hash("Travel2024!", 10),
         fullName: "Carlos Martinez",
-        phone: "+52 55 1234 5678",
-        location: "Ciudad de México, México",
-        bio: "Ingeniero de software que ama viajar. Siempre en busca de la mejor comida local y experiencias auténticas.",
-        website: "https://carlosviaja.mx",
         roles: ["traveler"],
         avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
         isActive: true,
         lastLogin: new Date(),
-        travelPreferences: {
-          preferredCurrency: "MXN",
-          preferredLanguage: "es",
-          travelStyle: "cultural",
-          favoriteDestination: "Perú",
-          budgetRange: {
-            min: 15000,
-            max: 50000,
-            currency: "MXN"
-          },
-          accommodationPreference: "airbnb",
-          transportPreference: "any"
-        },
-        stats: {
-          tripsCompleted: 6,
-          countriesVisited: ["México", "Perú", "Colombia", "Argentina"],
-          totalSpent: 180000,
-          totalSaved: 25000
-        }
       }
     ]);
 
