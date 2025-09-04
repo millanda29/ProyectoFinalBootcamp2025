@@ -1,0 +1,1409 @@
+{
+  "apiDocumentation": {
+    "baseUrl": "http://localhost:4000/api",
+    "version": "1.0.0",
+    "description": "TravelMate API - Documentación completa de endpoints",
+    "authentication": {
+      "type": "Bearer Token",
+      "header": "Authorization: Bearer <token>",
+      "note": "Incluir token JWT en el header Authorization para rutas protegidas"
+    }
+  },
+  "endpoints": {
+    "auth": {
+      "baseRoute": "/api/auth",
+      "endpoints": {
+        "register": {
+          "method": "POST",
+          "path": "/api/auth/register",
+          "description": "Registrar nuevo usuario",
+          "authentication": false,
+          "request": {
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "email": "usuario@example.com",
+              "password": "password123",
+              "fullName": "Juan Pérez"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 201,
+              "body": {
+                "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YjliZWVmM2FhMmQ0Y2Q4OTc4NWMzNiIsImVtYWlsIjoianVhbjEwQGV4YW1wbGUuY29tIiwicm9sZXMiOlsidHJhdmVsZXIiXSwiaWF0IjoxNzU3MDAzNTAzLCJleHAiOjE3NTcwMDcxMDN9.ogzlitNqvXTIuhpLUSuH3COeAe_b_nA6K0pW5jv4HcU",
+                "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YjliZWVmM2FhMmQ0Y2Q4OTc4NWMzNiIsImVtYWlsIjoianVhbjEwQGV4YW1wbGUuY29tIiwicm9sZXMiOlsidHJhdmVsZXIiXSwiaWF0IjoxNzU3MDAzNTAzLCJleHAiOjE3NTc2MDgzMDN9.eWHuZ2IaM13WZ_PJGpSMeVag_s5DUV9H_goHsQq6Uz0"
+              }
+            },
+            "error": {
+              "status": 400,
+              "body": {
+                "success": false,
+                "message": "El usuario ya existe."
+              }
+            }
+          }
+        },
+        "login": {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "description": "Iniciar sesión",
+          "authentication": false,
+          "request": {
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "email": "usuario@example.com",
+              "password": "password123"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YjliZWVmM2FhMmQ0Y2Q4OTc4NWMzNiIsImVtYWlsIjoianVhbjEwQGV4YW1wbGUuY29tIiwicm9sZXMiOlsidHJhdmVsZXIiXSwiaWF0IjoxNzU3MDAzNTAzLCJleHAiOjE3NTcwMDcxMDN9.ogzlitNqvXTIuhpLUSuH3COeAe_b_nA6K0pW5jv4HcU",
+                "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YjliZWVmM2FhMmQ0Y2Q4OTc4NWMzNiIsImVtYWlsIjoianVhbjEwQGV4YW1wbGUuY29tIiwicm9sZXMiOlsidHJhdmVsZXIiXSwiaWF0IjoxNzU3MDAzNTAzLCJleHAiOjE3NTc2MDgzMDN9.eWHuZ2IaM13WZ_PJGpSMeVag_s5DUV9H_goHsQq6Uz0"
+              }
+            },
+            "error": {
+              "status": 401,
+              "body": {
+                "success": false,
+                "message": "Contraseña incorrecta."
+              }
+            }
+          }
+        },
+        "refresh": {
+          "method": "POST",
+          "path": "/api/auth/refresh",
+          "description": "Renovar token de acceso",
+          "authentication": false,
+          "request": {
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "refreshToken": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YjliZWVmM2FhMmQ0Y2Q4OTc4NWMzNiIsImVtYWlsIjoianVhbjEwQGV4YW1wbGUuY29tIiwicm9sZXMiOlsidHJhdmVsZXIiXSwiaWF0IjoxNzU3MDAzNTAzLCJleHAiOjE3NTcwMDcxMDN9.ogzlitNqvXTIuhpLUSuH3COeAe_b_nA6K0pW5jv4HcU",
+                "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YjliZWVmM2FhMmQ0Y2Q4OTc4NWMzNiIsImVtYWlsIjoianVhbjEwQGV4YW1wbGUuY29tIiwicm9sZXMiOlsidHJhdmVsZXIiXSwiaWF0IjoxNzU3MDAzNTAzLCJleHAiOjE3NTc2MDgzMDN9.eWHuZ2IaM13WZ_PJGpSMeVag_s5DUV9H_goHsQq6Uz0"
+              }
+            },
+            "error": {
+              "status": 401,
+              "body": {
+                "success": false,
+                "message": "Refresh token inválido."
+              }
+            }
+          }
+        },
+        "logout": {
+          "method": "POST",
+          "path": "/api/auth/logout",
+          "description": "Cerrar sesión",
+          "authentication": false,
+          "request": {
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "refreshToken": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Logout exitoso"
+              }
+            }
+          }
+        }
+      }
+    },
+    "users": {
+      "baseRoute": "/api/users",
+      "endpoints": {
+        "getProfile": {
+          "method": "GET",
+          "path": "/api/users/me",
+          "description": "Obtener perfil del usuario actual",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "id": "60f7b3b4d1a2c3e4f5g6h7i8",
+                  "email": "usuario@example.com",
+                  "fullName": "Juan Pérez",
+                  "phone": "+34 666 123 456",
+                  "location": "Madrid, España",
+                  "bio": "Amante de los viajes y la aventura",
+                  "website": "https://juanperez.com",
+                  "avatarUrl": "https://example.com/avatar.jpg",
+                  "roles": ["traveler"],
+                  "isActive": true,
+                  "memberSince": "2024-01-15T00:00:00.000Z",
+                  "lastLogin": "2024-12-01T10:30:00.000Z",
+                  "createdTrips": [],
+                  "travelPreferences": {
+                    "preferredCurrency": "EUR",
+                    "preferredLanguage": "es",
+                    "travelStyle": "balanced",
+                    "favoriteDestination": "Europa",
+                    "interests": ["cultura", "gastronomía", "naturaleza"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "getFullProfile": {
+          "method": "GET",
+          "path": "/api/users/me/full",
+          "description": "Obtener perfil completo con estadísticas",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "id": "60f7b3b4d1a2c3e4f5g6h7i8",
+                  "email": "usuario@example.com",
+                  "fullName": "Juan Pérez",
+                  "stats": {
+                    "tripsCompleted": 5,
+                    "totalSpent": 2500.50,
+                    "countriesVisited": ["España", "Francia", "Italia"]
+                  },
+                  "computedStats": {
+                    "activeTripsCount": 2,
+                    "recentTrip": {
+                      "title": "Vacaciones en París",
+                      "destination": "París, Francia",
+                      "startDate": "2024-06-15T00:00:00.000Z"
+                    },
+                    "memberSince": "2024-01-15T00:00:00.000Z",
+                    "preferredCurrencyName": "Euro",
+                    "preferredLanguageName": "Español"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "updateProfile": {
+          "method": "PUT",
+          "path": "/api/users/me",
+          "description": "Actualizar perfil del usuario",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "fullName": "Juan Carlos Pérez",
+              "phone": "+34 666 987 654",
+              "location": "Barcelona, España",
+              "bio": "Viajero experimentado con pasión por la fotografía",
+              "website": "https://juancarlosperez.com",
+              "avatarUrl": "https://example.com/new-avatar.jpg"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "id": "60f7b3b4d1a2c3e4f5g6h7i8",
+                  "email": "usuario@example.com",
+                  "fullName": "Juan Carlos Pérez",
+                  "phone": "+34 666 987 654",
+                  "location": "Barcelona, España",
+                  "bio": "Viajero experimentado con pasión por la fotografía"
+                },
+                "message": "Perfil actualizado correctamente"
+              }
+            }
+          }
+        },
+        "updateTravelPreferences": {
+          "method": "PUT",
+          "path": "/api/users/me/preferences",
+          "description": "Actualizar preferencias de viaje",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "preferredCurrency": "USD",
+              "preferredLanguage": "en",
+              "travelStyle": "luxury",
+              "favoriteDestination": "Asia",
+              "interests": ["aventura", "relax", "cultura"]
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "preferredCurrency": "USD",
+                  "preferredLanguage": "en",
+                  "travelStyle": "luxury",
+                  "favoriteDestination": "Asia",
+                  "interests": ["aventura", "relax", "cultura"]
+                },
+                "message": "Preferencias de viaje actualizadas correctamente"
+              }
+            }
+          }
+        },
+        "updateNotifications": {
+          "method": "PUT",
+          "path": "/api/users/me/notifications",
+          "description": "Actualizar configuración de notificaciones",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "email": true,
+              "push": false,
+              "sms": true,
+              "marketing": false
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "email": true,
+                  "push": false,
+                  "sms": true,
+                  "marketing": false
+                },
+                "message": "Configuración de notificaciones actualizada correctamente"
+              }
+            }
+          }
+        },
+        "getTravelHistory": {
+          "method": "GET",
+          "path": "/api/users/me/trips",
+          "description": "Obtener historial de viajes del usuario",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": [
+                  {
+                    "id": "60f7b3b4d1a2c3e4f5g6h7i9",
+                    "title": "Vacaciones en París",
+                    "destination": "París, Francia",
+                    "startDate": "2024-06-15T00:00:00.000Z",
+                    "endDate": "2024-06-20T00:00:00.000Z",
+                    "status": "completed",
+                    "partySize": 2
+                  }
+                ],
+                "count": 1
+              }
+            }
+          }
+        },
+        "changePassword": {
+          "method": "PUT",
+          "path": "/api/users/me/change-password",
+          "description": "Cambiar contraseña del usuario",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "currentPassword": "oldPassword123",
+              "newPassword": "newPassword456"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Contraseña actualizada correctamente"
+              }
+            },
+            "error": {
+              "status": 400,
+              "body": {
+                "success": false,
+                "message": "Contraseña actual incorrecta"
+              }
+            }
+          }
+        },
+        "findSimilarUsers": {
+          "method": "GET",
+          "path": "/api/users/similar",
+          "description": "Buscar usuarios con preferencias similares",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            },
+            "queryParams": {
+              "favoriteDestination": "Europa",
+              "travelStyle": "balanced",
+              "preferredLanguage": "es"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": [
+                  {
+                    "id": "60f7b3b4d1a2c3e4f5g6h7j0",
+                    "fullName": "María García",
+                    "avatarUrl": "https://example.com/maria.jpg",
+                    "location": "Valencia, España",
+                    "travelPreferences": {
+                      "favoriteDestination": "Europa",
+                      "travelStyle": "balanced"
+                    },
+                    "stats": {
+                      "tripsCompleted": 8
+                    }
+                  }
+                ],
+                "count": 1
+              }
+            }
+          }
+        }
+      },
+      "adminEndpoints": {
+        "getAllUsers": {
+          "method": "GET",
+          "path": "/api/users/admin/all",
+          "description": "Obtener todos los usuarios (solo admin)",
+          "authentication": true,
+          "role": "admin",
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            },
+            "queryParams": {
+              "page": 1,
+              "limit": 10,
+              "search": "juan"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": [
+                  {
+                    "id": "60f7b3b4d1a2c3e4f5g6h7i8",
+                    "email": "usuario@example.com",
+                    "fullName": "Juan Pérez",
+                    "roles": ["traveler"],
+                    "isActive": true,
+                    "createdAt": "2024-01-15T00:00:00.000Z"
+                  }
+                ],
+                "pagination": {
+                  "currentPage": 1,
+                  "totalPages": 1,
+                  "totalUsers": 1,
+                  "hasNext": false,
+                  "hasPrev": false
+                }
+              }
+            }
+          }
+        },
+        "createUser": {
+          "method": "POST",
+          "path": "/api/users/admin/create",
+          "description": "Crear usuario (solo admin)",
+          "authentication": true,
+          "role": "admin",
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "email": "nuevo@example.com",
+              "password": "password123",
+              "fullName": "Usuario Nuevo",
+              "roles": ["traveler"]
+            }
+          },
+          "response": {
+            "success": {
+              "status": 201,
+              "body": {
+                "success": true,
+                "data": {
+                  "id": "60f7b3b4d1a2c3e4f5g6h7k1",
+                  "email": "nuevo@example.com",
+                  "fullName": "Usuario Nuevo",
+                  "roles": ["traveler"],
+                  "isActive": true
+                },
+                "message": "Usuario creado correctamente"
+              }
+            }
+          }
+        },
+        "getUserById": {
+          "method": "GET",
+          "path": "/api/users/admin/{id}",
+          "description": "Obtener usuario por ID (solo admin)",
+          "authentication": true,
+          "role": "admin",
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            },
+            "pathParams": {
+              "id": "60f7b3b4d1a2c3e4f5g6h7i8"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "id": "60f7b3b4d1a2c3e4f5g6h7i8",
+                  "email": "usuario@example.com",
+                  "fullName": "Juan Pérez",
+                  "roles": ["traveler"],
+                  "isActive": true,
+                  "createdTrips": []
+                }
+              }
+            }
+          }
+        },
+        "updateUser": {
+          "method": "PUT",
+          "path": "/api/users/admin/{id}",
+          "description": "Actualizar usuario (solo admin)",
+          "authentication": true,
+          "role": "admin",
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "Content-Type": "application/json"
+            },
+            "pathParams": {
+              "id": "60f7b3b4d1a2c3e4f5g6h7i8"
+            },
+            "body": {
+              "fullName": "Juan Carlos Pérez Actualizado",
+              "roles": ["admin", "traveler"],
+              "isActive": true
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "id": "60f7b3b4d1a2c3e4f5g6h7i8",
+                  "email": "usuario@example.com",
+                  "fullName": "Juan Carlos Pérez Actualizado",
+                  "roles": ["admin", "traveler"],
+                  "isActive": true
+                },
+                "message": "Usuario actualizado correctamente"
+              }
+            }
+          }
+        },
+        "deleteUser": {
+          "method": "DELETE",
+          "path": "/api/users/admin/{id}",
+          "description": "Eliminar usuario (solo admin)",
+          "authentication": true,
+          "role": "admin",
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            },
+            "pathParams": {
+              "id": "60f7b3b4d1a2c3e4f5g6h7i8"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Usuario eliminado correctamente"
+              }
+            }
+          }
+        },
+        "resetPassword": {
+          "method": "PUT",
+          "path": "/api/users/admin/{id}/reset-password",
+          "description": "Resetear contraseña de usuario (solo admin)",
+          "authentication": true,
+          "role": "admin",
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "Content-Type": "application/json"
+            },
+            "pathParams": {
+              "id": "60f7b3b4d1a2c3e4f5g6h7i8"
+            },
+            "body": {
+              "newPassword": "newPassword123"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Contraseña reseteada correctamente"
+              }
+            }
+          }
+        },
+        "getStats": {
+          "method": "GET",
+          "path": "/api/users/admin/stats",
+          "description": "Obtener estadísticas del sistema (solo admin)",
+          "authentication": true,
+          "role": "admin",
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "totalUsers": 150,
+                  "activeUsers": 142,
+                  "totalTrips": 340,
+                  "newUsersThisMonth": 25,
+                  "newTripsThisMonth": 67,
+                  "averageTripsPerUser": 2.3,
+                  "mostPopularDestinations": [
+                    {"destination": "París, Francia", "count": 45},
+                    {"destination": "Barcelona, España", "count": 38},
+                    {"destination": "Roma, Italia", "count": 32}
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "trips": {
+      "baseRoute": "/api/trips",
+      "endpoints": {
+        "getMyTrips": {
+          "method": "GET",
+          "path": "/api/trips/my",
+          "description": "Obtener todos los viajes del usuario actual",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            },
+            "queryParams": {
+              "status": "planned",
+              "page": 1,
+              "limit": 10
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": [
+                  {
+                    "id": "60f7b3b4d1a2c3e4f5g6h7i9",
+                    "title": "Vacaciones en París",
+                    "destination": "París, Francia",
+                    "startDate": "2024-06-15T00:00:00.000Z",
+                    "endDate": "2024-06-20T00:00:00.000Z",
+                    "partySize": 2,
+                    "status": "planned",
+                    "itinerary": [],
+                    "costs": [],
+                    "totalCost": 0,
+                    "createdAt": "2024-05-01T00:00:00.000Z"
+                  }
+                ],
+                "pagination": {
+                  "currentPage": 1,
+                  "totalPages": 1,
+                  "totalTrips": 1
+                }
+              }
+            }
+          }
+        },
+        "createTrip": {
+          "method": "POST",
+          "path": "/api/trips",
+          "description": "Crear nuevo viaje",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "title": "Aventura en Tokio",
+              "destination": "Tokio, Japón",
+              "startDate": "2024-09-15",
+              "endDate": "2024-09-25",
+              "partySize": 1,
+              "budget": 3000
+            }
+          },
+          "response": {
+            "success": {
+              "status": 201,
+              "body": {
+                "success": true,
+                "data": {
+                  "id": "60f7b3b4d1a2c3e4f5g6h7j1",
+                  "userId": "60f7b3b4d1a2c3e4f5g6h7i8",
+                  "title": "Aventura en Tokio",
+                  "destination": "Tokio, Japón",
+                  "startDate": "2024-09-15T00:00:00.000Z",
+                  "endDate": "2024-09-25T00:00:00.000Z",
+                  "partySize": 1,
+                  "status": "planned",
+                  "budget": 3000,
+                  "itinerary": [],
+                  "costs": [],
+                  "createdAt": "2024-05-15T00:00:00.000Z"
+                },
+                "message": "Viaje creado exitosamente"
+              }
+            }
+          }
+        },
+        "getTripById": {
+          "method": "GET",
+          "path": "/api/trips/{id}",
+          "description": "Obtener viaje por ID",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            },
+            "pathParams": {
+              "id": "60f7b3b4d1a2c3e4f5g6h7i9"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "id": "60f7b3b4d1a2c3e4f5g6h7i9",
+                  "title": "Vacaciones en París",
+                  "destination": "París, Francia",
+                  "startDate": "2024-06-15T00:00:00.000Z",
+                  "endDate": "2024-06-20T00:00:00.000Z",
+                  "partySize": 2,
+                  "status": "planned",
+                  "itinerary": [
+                    {
+                      "dayNumber": 1,
+                      "notes": "Llegada y primer día",
+                      "activities": [
+                        {
+                          "title": "Visita a la Torre Eiffel",
+                          "category": "sightseeing",
+                          "startTime": "09:00",
+                          "endTime": "11:00",
+                          "location": "Torre Eiffel, París"
+                        }
+                      ]
+                    }
+                  ],
+                  "costs": [
+                    {
+                      "type": "lodging",
+                      "label": "Hotel Notre-Dame",
+                      "amount": 120,
+                      "quantity": 5,
+                      "currency": "USD"
+                    }
+                  ],
+                  "totalCost": 600
+                }
+              }
+            }
+          }
+        },
+        "updateTrip": {
+          "method": "PUT",
+          "path": "/api/trips/{id}",
+          "description": "Actualizar viaje",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "Content-Type": "application/json"
+            },
+            "pathParams": {
+              "id": "60f7b3b4d1a2c3e4f5g6h7i9"
+            },
+            "body": {
+              "title": "Vacaciones Románticas en París",
+              "partySize": 2,
+              "status": "ongoing",
+              "budget": 2500
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "id": "60f7b3b4d1a2c3e4f5g6h7i9",
+                  "title": "Vacaciones Románticas en París",
+                  "destination": "París, Francia",
+                  "partySize": 2,
+                  "status": "ongoing",
+                  "budget": 2500
+                },
+                "message": "Viaje actualizado exitosamente"
+              }
+            }
+          }
+        },
+        "deleteTrip": {
+          "method": "DELETE",
+          "path": "/api/trips/{id}",
+          "description": "Eliminar viaje",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            },
+            "pathParams": {
+              "id": "60f7b3b4d1a2c3e4f5g6h7i9"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Viaje eliminado exitosamente"
+              }
+            }
+          }
+        },
+        "addCosts": {
+          "method": "PUT",
+          "path": "/api/trips/{id}/costs",
+          "description": "Agregar costos al viaje",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "Content-Type": "application/json"
+            },
+            "pathParams": {
+              "id": "60f7b3b4d1a2c3e4f5g6h7i9"
+            },
+            "body": {
+              "costs": [
+                {
+                  "type": "lodging",
+                  "label": "Hotel Notre-Dame",
+                  "amount": 120,
+                  "quantity": 5,
+                  "currency": "USD"
+                },
+                {
+                  "type": "transport",
+                  "label": "Metro passes",
+                  "amount": 15,
+                  "quantity": 2,
+                  "currency": "USD"
+                },
+                {
+                  "type": "activity",
+                  "label": "Museo del Louvre",
+                  "amount": 17,
+                  "quantity": 2,
+                  "currency": "USD"
+                }
+              ]
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "id": "60f7b3b4d1a2c3e4f5g6h7i9",
+                  "costs": [
+                    {
+                      "type": "lodging",
+                      "label": "Hotel Notre-Dame",
+                      "amount": 120,
+                      "quantity": 5,
+                      "currency": "USD"
+                    },
+                    {
+                      "type": "transport",
+                      "label": "Metro passes",
+                      "amount": 15,
+                      "quantity": 2,
+                      "currency": "USD"
+                    },
+                    {
+                      "type": "activity",
+                      "label": "Museo del Louvre",
+                      "amount": 17,
+                      "quantity": 2,
+                      "currency": "USD"
+                    }
+                  ],
+                  "totalCost": 664
+                },
+                "message": "Costos agregados exitosamente"
+              }
+            }
+          }
+        },
+        "updateItinerary": {
+          "method": "PUT",
+          "path": "/api/trips/{id}/itinerary",
+          "description": "Actualizar itinerario del viaje",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "Content-Type": "application/json"
+            },
+            "pathParams": {
+              "id": "60f7b3b4d1a2c3e4f5g6h7i9"
+            },
+            "body": {
+              "itinerary": [
+                {
+                  "dayNumber": 1,
+                  "notes": "Llegada y primer día en París",
+                  "activities": [
+                    {
+                      "title": "Check-in en el hotel",
+                      "category": "lodging",
+                      "startTime": "14:00",
+                      "endTime": "15:00",
+                      "location": "Hotel Notre-Dame"
+                    },
+                    {
+                      "title": "Visita a la Torre Eiffel",
+                      "category": "sightseeing",
+                      "startTime": "16:00",
+                      "endTime": "18:00",
+                      "location": "Torre Eiffel, París"
+                    }
+                  ]
+                },
+                {
+                  "dayNumber": 2,
+                  "notes": "Día de museos",
+                  "activities": [
+                    {
+                      "title": "Museo del Louvre",
+                      "category": "culture",
+                      "startTime": "09:00",
+                      "endTime": "13:00",
+                      "location": "Museo del Louvre"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "id": "60f7b3b4d1a2c3e4f5g6h7i9",
+                  "itinerary": [
+                    {
+                      "dayNumber": 1,
+                      "notes": "Llegada y primer día en París",
+                      "activities": [
+                        {
+                          "title": "Check-in en el hotel",
+                          "category": "lodging",
+                          "startTime": "14:00",
+                          "endTime": "15:00",
+                          "location": "Hotel Notre-Dame"
+                        },
+                        {
+                          "title": "Visita a la Torre Eiffel",
+                          "category": "sightseeing",
+                          "startTime": "16:00",
+                          "endTime": "18:00",
+                          "location": "Torre Eiffel, París"
+                        }
+                      ]
+                    },
+                    {
+                      "dayNumber": 2,
+                      "notes": "Día de museos",
+                      "activities": [
+                        {
+                          "title": "Museo del Louvre",
+                          "category": "culture",
+                          "startTime": "09:00",
+                          "endTime": "13:00",
+                          "location": "Museo del Louvre"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "message": "Itinerario actualizado exitosamente"
+              }
+            }
+          }
+        },
+        "generateReport": {
+          "method": "POST",
+          "path": "/api/trips/{id}/report",
+          "description": "Generar reporte PDF del viaje",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            },
+            "pathParams": {
+              "id": "60f7b3b4d1a2c3e4f5g6h7i9"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "downloadUrl": "/reports/trip-60f7b3b4d1a2c3e4f5g6h7i9-1640995200000.pdf",
+                  "fileName": "trip-60f7b3b4d1a2c3e4f5g6h7i9-1640995200000.pdf",
+                  "generatedAt": "2024-01-01T10:00:00.000Z"
+                },
+                "message": "Reporte PDF generado exitosamente"
+              }
+            }
+          }
+        },
+        "getReports": {
+          "method": "GET",
+          "path": "/api/trips/{id}/reports",
+          "description": "Obtener lista de reportes del viaje",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            },
+            "pathParams": {
+              "id": "60f7b3b4d1a2c3e4f5g6h7i9"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": [
+                  {
+                    "fileName": "trip-60f7b3b4d1a2c3e4f5g6h7i9-1640995200000.pdf",
+                    "downloadUrl": "/reports/trip-60f7b3b4d1a2c3e4f5g6h7i9-1640995200000.pdf",
+                    "generatedAt": "2024-01-01T10:00:00.000Z",
+                    "fileSize": "245.8 KB"
+                  }
+                ],
+                "count": 1
+              }
+            }
+          }
+        }
+      },
+      "adminEndpoints": {
+        "getAllTrips": {
+          "method": "GET",
+          "path": "/api/trips",
+          "description": "Obtener todos los viajes (solo admin)",
+          "authentication": true,
+          "role": "admin",
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            },
+            "queryParams": {
+              "page": 1,
+              "limit": 10,
+              "status": "planned",
+              "search": "París"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": [
+                  {
+                    "id": "60f7b3b4d1a2c3e4f5g6h7i9",
+                    "userId": "60f7b3b4d1a2c3e4f5g6h7i8",
+                    "title": "Vacaciones en París",
+                    "destination": "París, Francia",
+                    "startDate": "2024-06-15T00:00:00.000Z",
+                    "endDate": "2024-06-20T00:00:00.000Z",
+                    "status": "planned",
+                    "user": {
+                      "fullName": "Juan Pérez",
+                      "email": "usuario@example.com"
+                    }
+                  }
+                ],
+                "pagination": {
+                  "currentPage": 1,
+                  "totalPages": 1,
+                  "totalTrips": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "chat": {
+      "baseRoute": "/api/chat",
+      "endpoints": {
+        "generateBasicItinerary": {
+          "method": "POST",
+          "path": "/api/chat/itinerary",
+          "description": "Generar itinerario básico con IA",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "destination": "París, Francia",
+              "startDate": "2024-06-15",
+              "endDate": "2024-06-20",
+              "partySize": 2,
+              "budget": 2000,
+              "interests": ["cultura", "gastronomía", "historia"]
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "destination": "París, Francia",
+                  "duration": "5 días",
+                  "estimatedBudget": 1850,
+                  "itinerary": [
+                    {
+                      "day": 1,
+                      "title": "Llegada y centro histórico",
+                      "activities": [
+                        {
+                          "time": "14:00",
+                          "activity": "Check-in en el hotel",
+                          "location": "Hotel en Le Marais",
+                          "duration": "1 hora",
+                          "cost": 0
+                        },
+                        {
+                          "time": "16:00",
+                          "activity": "Paseo por la Île de la Cité",
+                          "location": "Notre-Dame y Sainte-Chapelle",
+                          "duration": "3 horas",
+                          "cost": 25
+                        }
+                      ]
+                    }
+                  ],
+                  "recommendations": [
+                    "Compra un pase de metro de 5 días para ahorrar dinero",
+                    "Reserva las entradas al Louvre con anticipación",
+                    "Prueba los croissants en una boulangerie local"
+                  ]
+                },
+                "message": "Itinerario generado exitosamente"
+              }
+            }
+          }
+        },
+        "generateTripItinerary": {
+          "method": "POST",
+          "path": "/api/chat/trip/{tripId}/itinerary",
+          "description": "Generar itinerario para un viaje específico",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "Content-Type": "application/json"
+            },
+            "pathParams": {
+              "tripId": "60f7b3b4d1a2c3e4f5g6h7i9"
+            },
+            "body": {
+              "preferences": ["museos", "parques", "vida nocturna"],
+              "budget": 2500,
+              "dietaryRestrictions": ["vegetariano"],
+              "specialRequests": "Incluir actividades románticas"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "tripId": "60f7b3b4d1a2c3e4f5g6h7i9",
+                  "generatedItinerary": [
+                    {
+                      "dayNumber": 1,
+                      "date": "2024-06-15",
+                      "theme": "Llegada y Romance",
+                      "activities": [
+                        {
+                          "title": "Check-in Hotel Romántico",
+                          "category": "lodging",
+                          "startTime": "14:00",
+                          "endTime": "15:00",
+                          "location": "Hotel des Grands Boulevards",
+                          "estimatedCost": 150,
+                          "description": "Hotel boutique en el corazón de París"
+                        },
+                        {
+                          "title": "Paseo romántico por el Sena",
+                          "category": "romantic",
+                          "startTime": "17:00",
+                          "endTime": "19:00",
+                          "location": "Orillas del Sena",
+                          "estimatedCost": 0,
+                          "description": "Camina junto al río al atardecer"
+                        }
+                      ]
+                    }
+                  ],
+                  "totalEstimatedCost": 2350,
+                  "aiRecommendations": [
+                    "He adaptado el itinerario para incluir opciones vegetarianas",
+                    "Agregué actividades románticas como pediste",
+                    "El presupuesto se ajusta a tus 2500 USD"
+                  ]
+                },
+                "message": "Itinerario personalizado generado y guardado en tu viaje"
+              }
+            }
+          }
+        },
+        "chatAssistant": {
+          "method": "POST",
+          "path": "/api/chat/assistant",
+          "description": "Chat con asistente de viajes IA",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "message": "¿Qué documentos necesito para viajar a Japón desde España?",
+              "tripId": "60f7b3b4d1a2c3e4f5g6h7j1",
+              "context": {
+                "destination": "Tokio, Japón",
+                "duration": 10,
+                "purpose": "turismo"
+              }
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "response": "Para viajar a Japón desde España como turista necesitas:\n\n📋 **Documentos obligatorios:**\n- Pasaporte válido (mínimo 6 meses de vigencia)\n- No necesitas visa para estancias de hasta 90 días\n\n💉 **Salud:**\n- No hay vacunas obligatorias actualmente\n- Seguro médico recomendado\n\n✈️ **Otros consejos:**\n- Lleva efectivo (Japón sigue siendo muy cash-based)\n- Descarga apps de traducción\n- JR Pass para el transporte si vas a moverte entre ciudades\n\n¿Te gustaría que te ayude con algo más específico sobre tu viaje a Tokio?",
+                  "conversationId": "conv_60f7b3b4d1a2c3e4f5g6h7k2",
+                  "relatedSuggestions": [
+                    "¿Cuál es la mejor época para viajar a Japón?",
+                    "¿Qué actividades recomiendas en Tokio?",
+                    "¿Cuánto dinero debería llevar para 10 días?"
+                  ],
+                  "tripContext": {
+                    "tripId": "60f7b3b4d1a2c3e4f5g6h7j1",
+                    "destination": "Tokio, Japón",
+                    "hasItinerary": false,
+                    "daysCovered": 0
+                  }
+                },
+                "message": "Respuesta del asistente generada"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "errorResponses": {
+    "common": {
+      "unauthorized": {
+        "status": 401,
+        "body": {
+          "success": false,
+          "message": "Token no válido o expirado"
+        }
+      },
+      "forbidden": {
+        "status": 403,
+        "body": {
+          "success": false,
+          "message": "No tienes permisos para acceder a este recurso"
+        }
+      },
+      "notFound": {
+        "status": 404,
+        "body": {
+          "success": false,
+          "message": "Recurso no encontrado"
+        }
+      },
+      "validation": {
+        "status": 400,
+        "body": {
+          "success": false,
+          "message": "Datos de entrada inválidos",
+          "errors": [
+            {
+              "field": "email",
+              "message": "Email es requerido"
+            },
+            {
+              "field": "password",
+              "message": "Contraseña debe tener al menos 6 caracteres"
+            }
+          ]
+        }
+      },
+      "serverError": {
+        "status": 500,
+        "body": {
+          "success": false,
+          "message": "Error interno del servidor"
+        }
+      }
+    }
+  },
+  "usageExamples": {
+    "curl": {
+      "login": "curl -X POST http://localhost:4000/api/auth/login \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"email\":\"usuario@example.com\",\"password\":\"password123\"}'",
+      "getProfile": "curl -X GET http://localhost:4000/api/users/me \\\n  -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"",
+      "createTrip": "curl -X POST http://localhost:4000/api/trips \\\n  -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"title\":\"Vacaciones en París\",\"destination\":\"París, Francia\",\"startDate\":\"2024-06-15\",\"endDate\":\"2024-06-20\",\"partySize\":2}'",
+      "generateItinerary": "curl -X POST http://localhost:4000/api/chat/itinerary \\\n  -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"destination\":\"París, Francia\",\"startDate\":\"2024-06-15\",\"endDate\":\"2024-06-20\",\"partySize\":2,\"budget\":2000}'"
+    },
+    "javascript": {
+      "login": "const response = await fetch('http://localhost:4000/api/auth/login', {\n  method: 'POST',\n  headers: {\n    'Content-Type': 'application/json'\n  },\n  body: JSON.stringify({\n    email: 'usuario@example.com',\n    password: 'password123'\n  })\n});\nconst data = await response.json();",
+      "getProfile": "const response = await fetch('http://localhost:4000/api/users/me', {\n  headers: {\n    'Authorization': `Bearer ${token}`\n  }\n});\nconst profile = await response.json();",
+      "createTrip": "const response = await fetch('http://localhost:4000/api/trips', {\n  method: 'POST',\n  headers: {\n    'Authorization': `Bearer ${token}`,\n    'Content-Type': 'application/json'\n  },\n  body: JSON.stringify({\n    title: 'Vacaciones en París',\n    destination: 'París, Francia',\n    startDate: '2024-06-15',\n    endDate: '2024-06-20',\n    partySize: 2\n  })\n});\nconst trip = await response.json();"
+    }
+  },
+  "statusCodes": {
+    "200": "OK - Solicitud exitosa",
+    "201": "Created - Recurso creado exitosamente",
+    "400": "Bad Request - Datos inválidos",
+    "401": "Unauthorized - Token inválido o faltante",
+    "403": "Forbidden - Sin permisos",
+    "404": "Not Found - Recurso no encontrado",
+    "500": "Internal Server Error - Error del servidor"
+  },
+  "notes": {
+    "authentication": "Todos los endpoints protegidos requieren un token JWT válido en el header Authorization",
+    "refreshToken": "Los tokens de acceso expiran en 1 hora. Usa el endpoint /refresh para obtener uno nuevo",
+    "adminRole": "Los endpoints marcados como 'admin' requieren que el usuario tenga rol de administrador",
+    "pagination": "Los endpoints que devuelven listas incluyen información de paginación",
+    "fileUploads": "Los archivos se manejan como URLs externas en los campos avatarUrl",
+    "pdfReports": "Los reportes PDF se generan con Puppeteer y se almacenan en la carpeta /reports",
+    "aiIntegration": "Los endpoints de chat utilizan OpenAI GPT-4o-mini para generar respuestas inteligentes"
+  }
+}

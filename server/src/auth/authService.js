@@ -26,61 +26,62 @@ const authService = {
     await user.save();
 
     // Generar tokens
-    const token = jwt.sign({ id: user._id, roles: user.roles }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+    const token = jwt.sign({ id: user._id, email: user.email, roles: user.roles }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
-    // Generar refresh token
-    const refreshToken = new RefreshToken({
+    // Generar refresh token como JWT también
+    const refreshToken = jwt.sign(
+      { id: user._id, email: user.email, roles: user.roles },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // Guardar refresh token en BD
+    const refreshTokenDoc = new RefreshToken({
       userId: user._id,
-      token: crypto.randomBytes(40).toString('hex'),
+      token: refreshToken,
       expiresAt: new Date(Date.now() + 7*24*60*60*1000)
     });
-    await refreshToken.save();
+    await refreshTokenDoc.save();
 
     return { 
       token, 
-      refreshToken: refreshToken.token, 
-      user: {
-        id: user._id,
-        email: user.email,
-        fullName: user.fullName,
-        roles: user.roles,
-        avatarUrl: user.avatarUrl
-      }
+      refreshToken
     };
   },
 
 
   // Login de usuario
   async login({ email, password }) {
-    const user = await User.findOne({ email });
-    if (!user) throw new Error('Usuario no encontrado.');
 
+    const user = await User.findOne({ email });
+
+    if (!user) throw new Error('Usuario no encontrado.');
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) throw new Error('Contraseña incorrecta.');
 
     user.lastLogin = new Date();
     await user.save();
 
-    const token = jwt.sign({ id: user._id, roles: user.roles }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+    const token = jwt.sign({ id: user._id, email: user.email, roles: user.roles }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
-    // Generar refresh token
-    const refreshToken = new RefreshToken({
+    // Generar refresh token como JWT también
+    const refreshToken = jwt.sign(
+      { id: user._id, email: user.email, roles: user.roles },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // Guardar refresh token en BD
+    const refreshTokenDoc = new RefreshToken({
       userId: user._id,
-      token: crypto.randomBytes(40).toString('hex'),
+      token: refreshToken,
       expiresAt: new Date(Date.now() + 7*24*60*60*1000)
     });
-    await refreshToken.save();
+    await refreshTokenDoc.save();
 
     return { 
       token, 
-      refreshToken: refreshToken.token, 
-      user: {
-        id: user._id,
-        email: user.email,
-        fullName: user.fullName,
-        roles: user.roles,
-        avatarUrl: user.avatarUrl
-      }
+      refreshToken
     };
   },
 
@@ -99,27 +100,27 @@ const authService = {
     if (!user) throw new Error('Usuario no encontrado.');
 
     // Generar nuevo access token
-    const token = jwt.sign({ id: user._id, roles: user.roles }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+    const token = jwt.sign({ id: user._id, email: user.email, roles: user.roles }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
     
-    // Generar nuevo refresh token
-    await RefreshToken.deleteOne({ _id: stored._id }); // Eliminar el viejo
-    const newRefreshToken = new RefreshToken({
-      token: crypto.randomBytes(40).toString('hex'),
+    // Generar nuevo refresh token como JWT
+    const newRefreshToken = jwt.sign(
+      { id: user._id, email: user.email, roles: user.roles },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // Eliminar el viejo y guardar el nuevo
+    await RefreshToken.deleteOne({ _id: stored._id });
+    const refreshTokenDoc = new RefreshToken({
+      token: newRefreshToken,
       userId: user._id,
-      expiresAt: new Date(Date.now() + 7*24*60*60*1000) // 7 días
+      expiresAt: new Date(Date.now() + 7*24*60*60*1000)
     });
-    await newRefreshToken.save();
+    await refreshTokenDoc.save();
 
     return { 
       token, 
-      refreshToken: newRefreshToken.token,
-      user: {
-        id: user._id,
-        email: user.email,
-        fullName: user.fullName,
-        roles: user.roles,
-        avatarUrl: user.avatarUrl
-      }
+      refreshToken: newRefreshToken
     };
   },
 

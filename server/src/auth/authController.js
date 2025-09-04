@@ -5,12 +5,10 @@ const authController = {
   // Registro de usuario
   register: async (req, res, next) => {
     try {
-      const { token, refreshToken, user } = await authService.register(req.body);
+      const { token, refreshToken } = await authService.register(req.body);
       res.status(201).json({
-        success: true,
         token,
-        refreshToken,
-        user
+        refreshToken
       });
     } catch (err) {
       next(err);
@@ -22,15 +20,21 @@ const authController = {
     try {
       const { email, password } = req.body;
 
-      const { user, token, refreshToken } = await authService.login({ email, password });
+      if (!email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email y contraseña son requeridos'
+        });
+      }
+
+      const { token, refreshToken } = await authService.login({ email, password });
 
       res.json({ 
-        success: true,
-        user, 
         token, 
-        refreshToken 
+        refreshToken
       });
     } catch (err) {
+      console.log('Login error:', err.message);
       next(err);
     }
   },
@@ -47,12 +51,10 @@ const authController = {
         });
       }
 
-      const { token, refreshToken: newRefreshToken, user } = await authService.refreshToken(refreshToken);
+      const { token, refreshToken: newRefreshToken } = await authService.refreshToken(refreshToken);
       res.json({ 
-        success: true,
         token, 
-        refreshToken: newRefreshToken, 
-        user 
+        refreshToken: newRefreshToken
       });
     } catch (err) {
       next(err);
