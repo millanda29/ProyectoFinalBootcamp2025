@@ -1,48 +1,35 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Badge } from '../components/ui/badge'
 import { MapPin, Calendar, DollarSign, MessageCircle, Eye, Trash2, Clock, Users, Loader2, Plus, Download } from 'lucide-react'
-import { AuthContext } from '../context/AuthContext'
 import api, { utils, constants } from '../data/api.js'
 
 const Itineraries = () => {
-  const { accessToken, loading: authLoading } = useContext(AuthContext)
   const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   
   useEffect(() => {
-    const loadData = async () => {
-      if (!accessToken) {
-        console.warn('No token available for trips loading')
-        setLoading(false)
-        return
-      }
-      
-      setLoading(true)
-      try {
-        const response = await api.trips.getMyTrips({ 
-          page: 1, 
-          limit: 20 
-        })
-        setTrips(response.trips || [])
-      } catch (error) {
-        console.error('Error loading trips:', error)
-        utils.showError(error)
-      } finally {
-        setLoading(false)
-      }
-    }
+    loadTrips()
+  }, [])
 
-    // Solo cargar si tenemos token y no estamos en loading de auth
-    if (!authLoading && accessToken) {
-      loadData()
-    } else if (!authLoading && !accessToken) {
+  const loadTrips = async () => {
+    setLoading(true)
+    try {
+      const response = await api.trips.getMyTrips({ 
+        page: 1, 
+        limit: 20 
+      })
+      setTrips(response.trips || [])
+    } catch (error) {
+      console.error('Error loading trips:', error)
+      utils.showError(error)
+    } finally {
       setLoading(false)
     }
-  }, [authLoading, accessToken])
+  }
 
   const handleDeleteTrip = async (tripId) => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar este viaje?')) {

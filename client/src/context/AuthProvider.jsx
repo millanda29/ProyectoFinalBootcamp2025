@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { login as apiLogin, register as apiRegister, logout as apiLogout } from "../data/apiAuth";
+import api from "../data/api";
 import { AuthContext } from "./AuthContext";
 
 const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState(null);
+  const [refreshToken, setRefreshToken] = useState(null);
+  const [user, setUser] = useState(null); // Información del usuario
   const [loading, setLoading] = useState(true);
   const [hasLoggedOut, setHasLoggedOut] = useState(false);
 
@@ -17,23 +19,37 @@ const AuthProvider = ({ children }) => {
       isInitialized = true;
       
       try {
-        // Primero verificar si hay token en localStorage
+        // Primero verificar si hay tokens en localStorage
         const localToken = localStorage.getItem("token");
+        const localRefreshToken = localStorage.getItem("refreshToken");
+        
         if (localToken) {
-          console.log('Found local token:', localToken); // Debug
           setAccessToken(localToken);
+          if (localRefreshToken) {
+            setRefreshToken(localRefreshToken);
+          }
+          
+          // Intentar cargar datos del usuario con el token guardado
+          try {
+            const userProfile = await api.users.getProfile();
+            setUser(userProfile);
+          } catch (error) {
+            console.warn('Failed to load user profile on init:', error);
+            // Si falla cargar el perfil, mantener el token pero sin datos de usuario
+          }
+          
           setLoading(false);
           return;
         }
 
         // Si no hay token local, NO intentar refresh automáticamente
-        console.log('No local token found, user not authenticated'); // Debug
         setAccessToken(null);
+        setRefreshToken(null);
         setLoading(false);
       } catch (err) {
         console.error("Token verification failed:", err.message);
         setAccessToken(null);
-        localStorage.removeItem("token");
+        setRefreshToken(null);
         setLoading(false);
       }
     };
@@ -54,11 +70,11 @@ const AuthProvider = ({ children }) => {
 
   const login = useCallback(async (email, password) => {
     try {
-      const data = await apiLogin({ email, password });
-      console.log('Login response:', data); // Debug
+      const data = await api.auth.login({ email, password });
       
-      // Determinar el campo correcto del token
-      const token = data.accessToken || data.token;
+      // La respuesta tiene token y refreshToken
+      const token = data.token;
+      const refresh = data.refreshToken;
       
       if (!token) {
         throw new Error('No se recibió token de autenticación');
@@ -71,32 +87,77 @@ const AuthProvider = ({ children }) => {
       setAccessToken(token);
       localStorage.setItem("token", token);
       
+      if (refresh) {
+        setRefreshToken(refresh);
+        localStorage.setItem("refreshToken", refresh);
+      }
+      
+      // Guardar información del usuario si viene en la respuesta
+      if (data.user) {
+        setUser(data.user);
+      } else {
+        // Si no viene en la respuesta, intentar cargar el perfil
+        try {
+          const userProfile = await api.users.getProfile();
+          setUser(userProfile);
+        } catch (error) {
+          console.warn('Failed to load user profile after login:', error);
+        }
+      }
+      
       return data;
     } catch (error) {
-      console.error('Login error:', error); // Debug
       // Limpiar estado en caso de error
       setAccessToken(null);
+      setRefreshToken(null);
       localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
       throw error;
     }
   }, []);
 
   const register = useCallback(async (userData) => {
-    const data = await apiRegister(userData);
-    const token = data.accessToken || data.token;
+    const data = await api.auth.register(userData);
+    
+    // La respuesta tiene token y refreshToken
+    const token = data.token;
+    const refresh = data.refreshToken;
+    
+    if (!token) {
+      throw new Error('No se recibió token de autenticación');
+    }
     
     // Reset logout flag al hacer register exitoso
     setHasLoggedOut(false);
     
     setAccessToken(token);
     localStorage.setItem("token", token);
+    
+    if (refresh) {
+      setRefreshToken(refresh);
+      localStorage.setItem("refreshToken", refresh);
+    }
+    
+    // Guardar información del usuario si viene en la respuesta
+    if (data.user) {
+      setUser(data.user);
+    } else {
+      // Si no viene en la respuesta, intentar cargar el perfil
+      try {
+        const userProfile = await api.users.getProfile();
+        setUser(userProfile);
+      } catch (error) {
+        console.warn('Failed to load user profile after register:', error);
+      }
+    }
+    
+    return data;
   }, []);
 
   const logout = useCallback(async () => {
     try {
       // Llamar a la API para limpiar las cookies del servidor
-      await apiLogout();
-      console.log('Server logout completed'); // Debug
+      await api.auth.logout();
     } catch (error) {
       console.error('Server logout failed:', error);
       // Continuar con el logout local incluso si falla el servidor
@@ -107,23 +168,71 @@ const AuthProvider = ({ children }) => {
     
     // Limpiar estado local completamente
     setAccessToken(null);
-    localStorage.clear(); // Limpiar todo el localStorage para estar seguros
-    
-    console.log('Local logout completed'); // Debug
+    setRefreshToken(null);
+    setUser(null); // Limpiar datos del usuario
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
   }, []);
+
+  // Función para renovar el token automáticamente
+  const renewToken = useCallback(async () => {
+    try {
+      if (!refreshToken) {
+        throw new Error('No refresh token available');
+      }
+      
+      const data = await api.auth.refreshToken();
+      
+      const newToken = data.token;
+      const newRefreshToken = data.refreshToken;
+      
+      if (newToken) {
+        setAccessToken(newToken);
+        localStorage.setItem("token", newToken);
+        
+        if (newRefreshToken) {
+          setRefreshToken(newRefreshToken);
+          localStorage.setItem("refreshToken", newRefreshToken);
+        }
+        
+        return newToken;
+      } else {
+        throw new Error('No new token received');
+      }
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      // Si falla el refresh, cerrar sesión
+      await logout();
+      throw error;
+    }
+  }, [refreshToken, logout]);
 
   // Método para resetear completamente el estado de autenticación
   const resetAuth = useCallback(() => {
     setHasLoggedOut(false);
     setAccessToken(null);
+    setRefreshToken(null);
+    setUser(null); // Limpiar datos del usuario
     setLoading(true);
-    localStorage.clear();
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
   }, []);
 
   // Memoriza el valor del contexto para evitar re-render innecesario
   const contextValue = useMemo(
-    () => ({ accessToken, login, register, logout, resetAuth, loading, hasLoggedOut }),
-    [accessToken, login, register, logout, resetAuth, loading, hasLoggedOut]
+    () => ({ 
+      accessToken, 
+      refreshToken, 
+      user, // Añadir datos del usuario al contexto
+      login, 
+      register, 
+      logout, 
+      resetAuth, 
+      renewToken,
+      loading, 
+      hasLoggedOut 
+    }),
+    [accessToken, refreshToken, user, login, register, logout, resetAuth, renewToken, loading, hasLoggedOut]
   );
 
   return (

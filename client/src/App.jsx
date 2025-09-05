@@ -9,6 +9,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Itineraries from "./pages/Itineraries";
 import Profile from "./pages/Profile";
+import Admin from "./pages/Admin";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="itineraries" element={<Itineraries />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="admin" element={<Admin />} />
         </Route>
 
         {/* fallback */}

@@ -1,4 +1,6 @@
-const API_URL = "http://localhost:4000/api/auth";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
+const API_URL = `${BASE_URL}/api/auth`;
 
 // Helper para manejar respuestas
 const handleResponse = async (res, defaultErrorMsg) => {
@@ -16,19 +18,35 @@ const handleResponse = async (res, defaultErrorMsg) => {
 
 // 🔹 Login
 export const login = async ({ email, password }) => {
+  
+  const requestBody = { email, password };
+  
   const res = await fetch(`${API_URL}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify(requestBody),
     credentials: "include"
   });
 
+  const responseText = await res.text();
+  
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.message || 'Login failed');
+    let errorData;
+    try {
+      errorData = JSON.parse(responseText);
+    } catch {
+      throw new Error('Login failed - Invalid response format');
+    }
+    throw new Error(errorData.message || 'Login failed');
   }
 
-  return res.json(); // { accessToken }
+  try {
+    const data = JSON.parse(responseText);
+    return data;
+  } catch (parseError) {
+    console.error('Failed to parse response:', parseError);
+    throw new Error('Login failed - Invalid response format');
+  }
 };
 
 
@@ -42,7 +60,6 @@ export const register = async (userData) => {
   });
 
   return handleResponse(res, "Register failed");
-  // Devuelve: { token, refreshToken, user }
 };
 
 // 🔹 Refresh token
@@ -53,7 +70,6 @@ export const refreshToken = async () => {
   });
 
   return handleResponse(res, "Failed to refresh token");
-  // Devuelve: { token }
 };
 
 // 🔹 Logout
@@ -64,5 +80,4 @@ export const logout = async () => {
   });
 
   return handleResponse(res, "Logout failed");
-  // Devuelve: { message: "Logged out" }
 };

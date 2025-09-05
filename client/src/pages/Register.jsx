@@ -4,9 +4,10 @@ import { Button } from '../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Input } from '../components/ui/input'
 import { Label } from '../components/ui/label'
-import { Check, X, Eye, EyeOff } from 'lucide-react'
+import { Check, X, Eye, EyeOff, AlertCircle } from 'lucide-react'
 import Logo from '../components/Logo'
 import { AuthContext } from '../context/AuthContext'
+import { utils, constants } from '../data/api.js'
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -35,7 +36,6 @@ const Register = () => {
   // Redirigir si ya está autenticado
   useEffect(() => {
     if (!loading && accessToken) {
-      console.log('User already authenticated, redirecting to dashboard...')
       navigate('/dashboard')
     }
   }, [accessToken, loading, navigate])
@@ -145,17 +145,17 @@ const Register = () => {
 
     setIsLoading(true)
     try {
-      console.log('Starting registration...')
       await register({
         name: formData.name.trim(),
         email: formData.email.trim(),
         password: formData.password
       })
-      console.log('Registration completed successfully')
+      utils.showSuccess(constants.SUCCESS_MESSAGES.REGISTER_SUCCESS)
       // La navegación se manejará en el useEffect cuando cambie accessToken
     } catch (err) {
       console.error('Registration failed:', err)
-      alert(err.message || 'Error al registrarse. Intenta de nuevo.')
+      utils.showError(err)
+      setErrors({ general: err.message || 'Error al registrarse. Intenta de nuevo.' })
     } finally {
       setIsLoading(false)
     }

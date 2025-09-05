@@ -4,21 +4,22 @@ import { Button } from '../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Input } from '../components/ui/input'
 import { Label } from '../components/ui/label'
-import { Plane } from 'lucide-react'
+import { Plane, AlertCircle } from 'lucide-react'
 import Logo from '../components/Logo'
 import { AuthContext } from '../context/AuthContext'
+import { utils, constants } from '../data/api.js'
 
 const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [errors, setErrors] = useState({})
   const navigate = useNavigate()
   const { login, accessToken, loading } = useContext(AuthContext)
 
   // Redirigir si ya está autenticado
   useEffect(() => {
     if (!loading && accessToken) {
-      console.log('Redirecting to dashboard...'); // Debug
       navigate('/dashboard');
     }
   }, [accessToken, loading, navigate]);
@@ -37,15 +38,30 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    
+    // Limpiar errores previos
+    setErrors({});
+    
+    // Validar formulario
+    const validation = utils.validateForm({ email, password }, {
+      email: [utils.validateEmail],
+      password: [utils.validatePassword],
+    });
+
+    if (!validation.isValid) {
+      setErrors(validation.errors);
+      return;
+    }
+
     setIsLoading(true);
     try {
-      console.log('Starting login...'); // Debug
       await login(email, password);
-      console.log('Login completed successfully'); // Debug
+      utils.showSuccess(constants.SUCCESS_MESSAGES.LOGIN_SUCCESS);
       // La navegación se manejará en el useEffect cuando cambie accessToken
     } catch (err) {
-      console.error('Login failed:', err); // Debug
-      alert(err.message); // Muestra error si credenciales inválidas
+      console.error('Login failed:', err);
+      utils.showError(err);
+      setErrors({ general: err.message });
     } finally {
       setIsLoading(false);
     }
@@ -71,6 +87,12 @@ const Login = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
+          {errors.general && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2 text-red-700">
+              <AlertCircle size={16} />
+              <span className="text-sm">{errors.general}</span>
+            </div>
+          )}
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-gray-700 font-medium">Email</Label>
@@ -80,9 +102,17 @@ const Login = () => {
                 placeholder="tu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 h-11"
+                className={`border-gray-300 focus:border-blue-500 focus:ring-blue-500 h-11 ${
+                  errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
+                }`}
                 required
               />
+              {errors.email && (
+                <span className="text-sm text-red-600 flex items-center gap-1">
+                  <AlertCircle size={14} />
+                  {errors.email}
+                </span>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password" className="text-gray-700 font-medium">Contraseña</Label>
@@ -92,9 +122,17 @@ const Login = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 h-11"
+                className={`border-gray-300 focus:border-blue-500 focus:ring-blue-500 h-11 ${
+                  errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
+                }`}
                 required
               />
+              {errors.password && (
+                <span className="text-sm text-red-600 flex items-center gap-1">
+                  <AlertCircle size={14} />
+                  {errors.password}
+                </span>
+              )}
             </div>
             <Button 
               type="submit" 

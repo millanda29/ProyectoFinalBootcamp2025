@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Input } from '../components/ui/input'
 import { ScrollArea } from '../components/ui/scroll-area'
-import { MessageCircle, Send, DollarSign, Plane, MapPin, Calendar, Users } from 'lucide-react'
+import { MessageCircle, Send, DollarSign, Plane, MapPin, Calendar, Users, Loader2 } from 'lucide-react'
+import { AuthContext } from '../context/AuthContext'
+import api, { utils } from '../data/api.js'
 
 const Dashboard = () => {
+  const { accessToken, loading: authLoading } = useContext(AuthContext)
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -15,6 +18,8 @@ const Dashboard = () => {
     }
   ])
   const [newMessage, setNewMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [trips, setTrips] = useState([])
   const [budget, setBudget] = useState({
     destination: '',
     duration: '',
@@ -26,36 +31,91 @@ const Dashboard = () => {
     total: 0
   })
 
-  const handleSendMessage = (e) => {
+  // Cargar viajes al montar el componente
+  useEffect(() => {
+    loadTrips()
+  }, [])
+
+  const loadTrips = async () => {
+    try {
+      const response = await api.trips.getMyTrips({ page: 1, limit: 5 })
+      setTrips(response.trips || [])
+    } catch (error) {
+      console.error('Error loading trips:', error)
+      utils.showError(error)
+    }
+  }
+
+  const handleSendMessage = async (e) => {
     e.preventDefault()
-    if (!newMessage.trim()) return
+    if (!newMessage.trim() || isLoading) return
 
     const userMessage = {
       id: messages.length + 1,
       type: 'user',
-      message: newMessage,
+      message: newMessage.trim(),
       timestamp: new Date()
     }
 
     setMessages([...messages, userMessage])
     setNewMessage('')
+    setIsLoading(true)
 
-    // Simular respuesta del bot después de un delay
-    setTimeout(() => {
+    try {
+      // Usar la API real de chat
+      const response = await api.chat.chatWithAssistant({
+        message: newMessage.trim(),
+        context: 'travel_planning'
+      })
+
       const botResponse = {
         id: messages.length + 2,
         type: 'bot',
-        message: 'Excelente elección! Te ayudo a planificar tu viaje. ¿Cuántos días planeas quedarte y cuál es tu presupuesto aproximado?',
+        message: response.message || response.response || 'Lo siento, no pude procesar tu solicitud.',
         timestamp: new Date()
       }
+
       setMessages(prev => [...prev, botResponse])
       
-      // Simular actualización de presupuesto basado en la conversación
-      updateBudgetFromMessage(userMessage.message)
-    }, 1000)
+      // Actualizar presupuesto si la respuesta incluye información relevante
+      if (response.budget_estimate) {
+        updateBudgetFromResponse(response.budget_estimate)
+      }
+    } catch (error) {
+      console.error('Error sending message:', error)
+      utils.showError(error)
+      
+      const errorResponse = {
+        id: messages.length + 2,
+        type: 'bot',
+        message: 'Lo siento, hubo un error al procesar tu mensaje. Por favor, inténtalo de nuevo.',
+        timestamp: new Date()
+      }
+      
+      setMessages(prev => [...prev, errorResponse])
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  // Función para actualizar presupuesto basado en mensajes
+  // Función para actualizar presupuesto basado en respuesta de la API
+  const updateBudgetFromResponse = (budgetEstimate) => {
+    if (budgetEstimate) {
+      setBudget(prev => ({
+        ...prev,
+        destination: budgetEstimate.destination || prev.destination,
+        duration: budgetEstimate.duration || prev.duration,
+        travelers: budgetEstimate.travelers || prev.travelers,
+        accommodation: budgetEstimate.accommodation || prev.accommodation,
+        transportation: budgetEstimate.transportation || prev.transportation,
+        food: budgetEstimate.food || prev.food,
+        activities: budgetEstimate.activities || prev.activities,
+        total: budgetEstimate.total || prev.total
+      }))
+    }
+  }
+
+  // Función para actualizar presupuesto basado en mensajes (fallback)
   const updateBudgetFromMessage = (message) => {
     const lowerMessage = message.toLowerCase()
     
@@ -149,13 +209,23 @@ const Dashboard = () => {
               {/* Message Input */}
               <form onSubmit={handleSendMessage} className="flex gap-3">
                 <Input
-                  placeholder="Escribe tu mensaje..."
+                  placeholder={isLoading ? "Procesando..." : "Escribe tu mensaje..."}
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
+                  disabled={isLoading}
                   className="flex-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                 />
-                <Button type="submit" size="icon" className="bg-blue-600 hover:bg-blue-700 shadow-md">
-                  <Send className="h-4 w-4" />
+                <Button 
+                  type="submit" 
+                  size="icon" 
+                  disabled={isLoading || !newMessage.trim()}
+                  className="bg-blue-600 hover:bg-blue-700 shadow-md"
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                 </Button>
               </form>
             </CardContent>

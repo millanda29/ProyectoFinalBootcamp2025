@@ -3,7 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs'
-import { Plane, MessageCircle, MapPin, DollarSign, User, LogOut } from 'lucide-react'
+import { Plane, MessageCircle, MapPin, DollarSign, User, LogOut, Shield } from 'lucide-react'
 import Logo from './Logo'
 import { AuthContext } from '../context/AuthContext'
 
@@ -27,7 +27,8 @@ const Layout = () => {
   const navItems = [
     { id: 'chat', label: 'Chat IA', icon: MessageCircle, path: '/dashboard' },
     { id: 'itineraries', label: 'Mis Viajes', icon: MapPin, path: '/itineraries' },
-    { id: 'profile', label: 'Perfil', icon: User, path: '/profile' }
+    { id: 'profile', label: 'Perfil', icon: User, path: '/profile' },
+    { id: 'admin', label: 'Admin', icon: Shield, path: '/admin' } // Nuevo tab de admin
   ]
 
   return (
@@ -60,10 +61,10 @@ const Layout = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6">
         {/* Navigation Tabs - Solo mostrar en rutas del dashboard */}
-        {currentPath.startsWith('/dashboard') || currentPath === '/itineraries' || currentPath === '/profile' ? (
+        {(currentPath.startsWith('/dashboard') || currentPath === '/itineraries' || currentPath === '/profile' || currentPath === '/admin') ? (
           <div className="mb-8">
             <Tabs value={getCurrentTab(currentPath)} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 lg:grid-cols-3 mb-6 bg-white/80 backdrop-blur-sm border border-white/50 shadow-md">
+              <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 mb-6 bg-white/80 backdrop-blur-sm border border-white/50 shadow-md">
                 {navItems.map((item) => {
                   const Icon = item.icon
                   const isActive = getCurrentTab(currentPath) === item.id
@@ -100,6 +101,7 @@ const getCurrentTab = (path) => {
   if (path === '/dashboard') return 'chat'
   if (path === '/itineraries') return 'itineraries'
   if (path === '/profile') return 'profile'
+  if (path === '/admin') return 'admin'
   return 'chat'
 }
 
