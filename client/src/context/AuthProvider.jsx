@@ -9,6 +9,31 @@ const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [hasLoggedOut, setHasLoggedOut] = useState(false);
 
+  // Helper para extraer datos de usuario de diferentes estructuras de respuesta
+  const extractUserData = (response) => {
+    console.log('🔧 extractUserData: Analizando respuesta:', response);
+    
+    // Posibles ubicaciones del usuario en la respuesta
+    const possiblePaths = [
+      response.user,           // respuesta.user
+      response.data?.user,     // respuesta.data.user  
+      response.data,           // respuesta.data
+      response                 // respuesta directa
+    ];
+    
+    for (let i = 0; i < possiblePaths.length; i++) {
+      const userData = possiblePaths[i];
+      if (userData && (userData.email || userData.id)) {
+        console.log(`✅ extractUserData: Usuario encontrado en path ${i}:`, userData);
+        console.log(`🔐 extractUserData: Rol extraído:`, userData.role);
+        return userData;
+      }
+    }
+    
+    console.log('❌ extractUserData: No se pudo extraer usuario de la respuesta');
+    return null;
+  };
+
   // Ejecuta verificación al montar SOLO UNA VEZ
   useEffect(() => {
     let isInitialized = false;
@@ -31,10 +56,19 @@ const AuthProvider = ({ children }) => {
           
           // Intentar cargar datos del usuario con el token guardado
           try {
-            const userProfile = await api.users.getProfile();
-            setUser(userProfile);
+            console.log('🔍 AuthProvider: Intentando cargar perfil con token:', localToken?.substring(0, 20) + '...');
+            const userProfileResponse = await api.users.getProfile(localToken);
+            console.log('📊 AuthProvider: Respuesta getProfile:', userProfileResponse);
+            
+            const userData = extractUserData(userProfileResponse);
+            if (userData) {
+              setUser(userData);
+            } else {
+              console.log('❌ AuthProvider: No se pudo extraer datos de usuario');
+            }
           } catch (error) {
-            console.warn('Failed to load user profile on init:', error);
+            console.error('❌ AuthProvider: Failed to load user profile on init:', error);
+            console.log('🔍 AuthProvider: Token usado:', localToken?.substring(0, 20) + '...');
             // Si falla cargar el perfil, mantener el token pero sin datos de usuario
           }
           
@@ -70,7 +104,9 @@ const AuthProvider = ({ children }) => {
 
   const login = useCallback(async (email, password) => {
     try {
+      console.log('🔐 AuthProvider Login: Iniciando login para:', email);
       const data = await api.auth.login({ email, password });
+      console.log('📊 AuthProvider Login: Respuesta completa:', data);
       
       // La respuesta tiene token y refreshToken
       const token = data.token;
@@ -79,6 +115,8 @@ const AuthProvider = ({ children }) => {
       if (!token) {
         throw new Error('No se recibió token de autenticación');
       }
+      
+      console.log('🔑 AuthProvider Login: Token recibido:', token?.substring(0, 20) + '...');
       
       // Reset logout flag al hacer login exitoso
       setHasLoggedOut(false);
@@ -93,15 +131,27 @@ const AuthProvider = ({ children }) => {
       }
       
       // Guardar información del usuario si viene en la respuesta
-      if (data.user) {
-        setUser(data.user);
+      console.log('� AuthProvider Login: Respuesta completa:', JSON.stringify(data, null, 2));
+      
+      const userData = extractUserData(data);
+      if (userData) {
+        setUser(userData);
       } else {
-        // Si no viene en la respuesta, intentar cargar el perfil
+        // Si no se puede extraer de la respuesta, intentar cargar el perfil
+        console.log('🔍 AuthProvider Login: No hay usuario en respuesta, cargando perfil...');
         try {
-          const userProfile = await api.users.getProfile();
-          setUser(userProfile);
+          console.log('🔍 AuthProvider Login: Cargando perfil separadamente...');
+          const userProfileResponse = await api.users.getProfile(token);
+          console.log('📊 AuthProvider Login: Respuesta getProfile:', userProfileResponse);
+          
+          const profileUserData = extractUserData(userProfileResponse);
+          if (profileUserData) {
+            setUser(profileUserData);
+          } else {
+            console.log('❌ AuthProvider Login: No se pudo extraer usuario del perfil');
+          }
         } catch (error) {
-          console.warn('Failed to load user profile after login:', error);
+          console.error('❌ AuthProvider Login: Error al cargar perfil:', error);
         }
       }
       

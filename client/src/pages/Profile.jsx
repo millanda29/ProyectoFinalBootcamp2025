@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Input } from '../components/ui/input'
@@ -26,8 +26,8 @@ import {
   Loader2,
   AlertCircle
 } from 'lucide-react'
-import { AuthContext } from '../context/AuthContext'
-import api, { utils, constants } from '../data/api.js'
+import { useAuth } from '../context/AuthContext'
+import api, { utils } from '../data/api.js'
 
 // Importar la lista de países para mostrar banderas
 const countries = [
@@ -227,7 +227,7 @@ const countries = [
 ]
 
 const Profile = () => {
-  const { accessToken, loading: authLoading, user } = useContext(AuthContext)
+  const { accessToken, loading: authLoading, user } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -324,7 +324,8 @@ const Profile = () => {
       // Si no hay datos en el contexto, cargar desde la API
       setIsLoading(true)
       try {
-        const profile = await api.users.getProfile()
+        // ✅ Usar endpoint con token
+        const profile = await api.users.getProfile(accessToken)
         
         setUserInfo({
           name: profile.fullName || profile.name || profile.email || '',
@@ -415,12 +416,12 @@ const Profile = () => {
         }
       }
 
-      await api.users.updateProfile(updateData)
+      await api.users.updateProfile(accessToken, updateData)
       setIsEditing(false)
-      utils.showSuccess(constants.SUCCESS_MESSAGES.PROFILE_UPDATED)
+      utils.showSuccess('Perfil actualizado correctamente')
     } catch (error) {
       console.error('Error updating profile:', error)
-      utils.showError(error)
+      utils.showError('Error al actualizar el perfil')
       setErrors({ general: error.message })
     } finally {
       setIsSaving(false)
@@ -472,7 +473,15 @@ const Profile = () => {
           <Card className="border-0 shadow-xl bg-white">
             <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-2xl">Mi Perfil</CardTitle>
+                <div className="flex items-center space-x-2">
+                  <CardTitle className="text-2xl">Mi Perfil</CardTitle>
+                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                    IA
+                  </Badge>
+                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                    Beta
+                  </Badge>
+                </div>
                 <div className="flex gap-2">
                   {isEditing ? (
                     <>

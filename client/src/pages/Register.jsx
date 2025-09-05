@@ -1,13 +1,14 @@
-import React, { useState, useContext, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Input } from '../components/ui/input'
 import { Label } from '../components/ui/label'
+import { Badge } from '../components/ui/badge'
 import { Check, X, Eye, EyeOff, AlertCircle } from 'lucide-react'
 import Logo from '../components/Logo'
-import { AuthContext } from '../context/AuthContext'
-import { utils, constants } from '../data/api.js'
+import { useAuth } from '../context/AuthContext'
+import { utils } from '../data/api.js'
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -31,7 +32,7 @@ const Register = () => {
     }
   })
   const navigate = useNavigate()
-  const { register, accessToken, loading } = useContext(AuthContext)
+  const { register, accessToken, loading } = useAuth()
 
   // Redirigir si ya está autenticado
   useEffect(() => {
@@ -145,16 +146,17 @@ const Register = () => {
 
     setIsLoading(true)
     try {
+      // ✅ Usar función de register del contexto
       await register({
         name: formData.name.trim(),
         email: formData.email.trim(),
         password: formData.password
       })
-      utils.showSuccess(constants.SUCCESS_MESSAGES.REGISTER_SUCCESS)
+      utils.showSuccess('Registro exitoso')
       // La navegación se manejará en el useEffect cuando cambie accessToken
     } catch (err) {
       console.error('Registration failed:', err)
-      utils.showError(err)
+      utils.showError('Error al registrarse')
       setErrors({ general: err.message || 'Error al registrarse. Intenta de nuevo.' })
     } finally {
       setIsLoading(false)
@@ -175,7 +177,15 @@ const Register = () => {
           <div className="flex items-center justify-center mb-6">
             <Logo size="large" variant="default" />
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900 mb-2">Únete a TravelMate</CardTitle>
+          <div className="flex items-center justify-center space-x-2 mb-2">
+            <CardTitle className="text-2xl font-bold text-gray-900">Únete a TravelMate</CardTitle>
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+              IA
+            </Badge>
+            <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+              Beta
+            </Badge>
+          </div>
           <CardDescription className="text-gray-600">
             Crea tu cuenta y comienza a planificar tus viajes
           </CardDescription>

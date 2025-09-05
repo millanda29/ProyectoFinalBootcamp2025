@@ -4,16 +4,47 @@ const API_URL = `${BASE_URL}/api/chat`;
 
 // Helper para manejar respuestas
 const handleResponse = async (res, defaultErrorMsg) => {
+  // Obtener el texto de la respuesta primero
+  const text = await res.text();
+  
   if (!res.ok) {
     let errorData;
     try {
-      errorData = await res.json();
+      errorData = JSON.parse(text);
     } catch {
-      throw new Error(defaultErrorMsg);
+      // Si no es JSON válido, usar el texto completo como error
+      throw new Error(`${defaultErrorMsg}: ${text || 'Unknown error'}`);
     }
     throw new Error(errorData.message || defaultErrorMsg);
   }
-  return res.json();
+  
+  // Para respuestas exitosas, intentar parsear como JSON
+  try {
+    const jsonData = JSON.parse(text);
+    
+    // Verificar si la respuesta tiene la estructura esperada
+    if (jsonData.success && jsonData.data) {
+      return jsonData;
+    } else if (jsonData.data) {
+      return jsonData;
+    } else {
+      // Si no tiene la estructura esperada, envolver la respuesta
+      return {
+        success: true,
+        data: jsonData
+      };
+    }
+  } catch {
+    // Si no es JSON válido, podría ser un token u otra respuesta de texto
+    // Envolver en la estructura esperada
+    return {
+      success: true,
+      data: {
+        response: text,
+        message: text
+      }
+    };
+  }
 };
 
 // Helper para obtener headers con autorización

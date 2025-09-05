@@ -1,13 +1,14 @@
-import React, { useState, useContext, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Input } from '../components/ui/input'
 import { Label } from '../components/ui/label'
+import { Badge } from '../components/ui/badge'
 import { Plane, AlertCircle } from 'lucide-react'
 import Logo from '../components/Logo'
-import { AuthContext } from '../context/AuthContext'
-import { utils, constants } from '../data/api.js'
+import { useAuth } from '../context/AuthContext'
+import { utils } from '../data/api.js'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -15,7 +16,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState({})
   const navigate = useNavigate()
-  const { login, accessToken, loading } = useContext(AuthContext)
+  const { login, accessToken, loading } = useAuth()
 
   // Redirigir si ya está autenticado
   useEffect(() => {
@@ -42,7 +43,7 @@ const Login = () => {
     // Limpiar errores previos
     setErrors({});
     
-    // Validar formulario
+    // ✅ Validar formulario
     const validation = utils.validateForm({ email, password }, {
       email: [utils.validateEmail],
       password: [utils.validatePassword],
@@ -55,12 +56,13 @@ const Login = () => {
 
     setIsLoading(true);
     try {
+      // ✅ Usar función de login del contexto
       await login(email, password);
-      utils.showSuccess(constants.SUCCESS_MESSAGES.LOGIN_SUCCESS);
+      utils.showSuccess('Inicio de sesión exitoso');
       // La navegación se manejará en el useEffect cuando cambie accessToken
     } catch (err) {
       console.error('Login failed:', err);
-      utils.showError(err);
+      utils.showError('Error al iniciar sesión');
       setErrors({ general: err.message });
     } finally {
       setIsLoading(false);
@@ -81,7 +83,15 @@ const Login = () => {
           <div className="flex items-center justify-center mb-6">
             <Logo size="large" variant="default" />
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900 mb-2">Bienvenido de vuelta</CardTitle>
+          <div className="flex items-center justify-center space-x-2 mb-2">
+            <CardTitle className="text-2xl font-bold text-gray-900">Bienvenido de vuelta</CardTitle>
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+              IA
+            </Badge>
+            <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+              Beta
+            </Badge>
+          </div>
           <CardDescription className="text-gray-600">
             Accede a tu cuenta para planificar tus viajes
           </CardDescription>

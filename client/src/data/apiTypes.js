@@ -195,6 +195,7 @@ export const API_ENDPOINTS = {
   TRIPS_COMPLETE: '/api/trips/:id/complete',
   TRIPS_CANCEL: '/api/trips/:id/cancel',
   TRIPS_PDF: '/api/trips/:id/pdf',
+  TRIPS_REPORT: '/api/trips/:id/report',
   TRIPS_EXPORT: '/api/trips/:id/export',
   
   // Chat/AI

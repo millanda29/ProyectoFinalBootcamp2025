@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Badge } from '../components/ui/badge'
@@ -19,11 +19,12 @@ import {
   UserX,
   Loader2
 } from 'lucide-react'
-import { AuthContext } from '../context/AuthContext'
-import api, { utils, constants } from '../data/api.js'
+import { useAuth } from '../context/AuthContext'
+import { Navigate } from 'react-router-dom'
+import api, { utils } from '../data/api.js'
 
 const Admin = () => {
-  const { accessToken, loading: authLoading } = useContext(AuthContext)
+  const { accessToken, user, loading: authLoading } = useAuth()
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -35,94 +36,60 @@ const Admin = () => {
   const [trips, setTrips] = useState([])
 
   useEffect(() => {
-    const loadData = async () => {
-      if (!accessToken) {
-        console.warn('No token available for admin data loading')
+    const loadAdminData = async () => {
+      if (!accessToken || !user || !user.roles?.includes('admin')) {
+        console.log('❌ Admin: Sin permisos para cargar datos admin', { user: user?.email, roles: user?.roles })
         setLoading(false)
         return
       }
       
       setLoading(true)
       try {
-        // Simular datos de admin por ahora
-        setStats({
-          totalUsers: 156,
-          totalTrips: 342,
-          totalMessages: 1284,
-          activeUsers: 89
-        })
+        // ✅ Usar endpoints reales de admin
+        const [adminStatsResponse, allUsersResponse] = await Promise.all([
+          api.users.getAdminStats(accessToken),
+          api.users.getAllUsers(accessToken)
+        ])
         
-        setUsers([
-          {
-            _id: '1',
-            name: 'Juan Pérez',
-            email: 'juan@example.com',
-            role: 'user',
-            isActive: true,
-            joinDate: '2024-01-15',
-            totalTrips: 5
-          },
-          {
-            _id: '2',
-            name: 'María García',
-            email: 'maria@example.com',
-            role: 'user',
-            isActive: true,
-            joinDate: '2024-02-20',
-            totalTrips: 3
-          },
-          {
-            _id: '3',
-            name: 'Carlos López',
-            email: 'carlos@example.com',
-            role: 'admin',
-            isActive: true,
-            joinDate: '2024-01-01',
-            totalTrips: 0
-          }
-        ])
-
-        setTrips([
-          {
-            _id: '1',
-            title: 'Viaje a París',
-            destination: 'París, Francia',
-            creator: 'Juan Pérez',
-            status: 'active',
-            startDate: '2024-12-15',
-            budget: 2500,
-            participants: 2
-          },
-          {
-            _id: '2',
-            title: 'Aventura en Tokio',
-            destination: 'Tokio, Japón',
-            creator: 'María García',
-            status: 'completed',
-            startDate: '2024-11-01',
-            budget: 3200,
-            participants: 1
-          }
-        ])
+        setStats(adminStatsResponse)
+        setUsers(allUsersResponse.users || allUsersResponse)
+        
+        // TODO: Cargar trips cuando el endpoint esté disponible
+        // const tripsResponse = await api.trips.getAllTrips(accessToken)
+        // setTrips(tripsResponse.trips || tripsResponse)
         
       } catch (error) {
         console.error('Error loading admin data:', error)
-        utils.showError(error)
+        utils.showError('Error al cargar datos de administración')
+        
+        // Fallback data en caso de error
+        setStats({
+          totalUsers: 0,
+          totalTrips: 0,
+          totalMessages: 0,
+          activeUsers: 0
+        })
+        setUsers([])
+        setTrips([])
       } finally {
         setLoading(false)
       }
     }
 
-    if (!authLoading && accessToken) {
-      loadData()
-    } else if (!authLoading && !accessToken) {
-      setLoading(false)
-    }
-  }, [authLoading, accessToken])
+    loadAdminData()
+  }, [accessToken, user])
+
+  // ✅ Protección de ruta - Solo admins pueden acceder
+  if (!authLoading && (!user || !user.roles?.includes('admin'))) {
+    console.log('❌ Admin: Usuario no autorizado, redirigiendo...', { user: user?.email, roles: user?.roles })
+    return <Navigate to="/dashboard" replace />
+  }
 
   const handleUserStatusToggle = async (userId, currentStatus) => {
     try {
-      // Aquí iría la llamada real a la API
+      // ✅ Usar endpoint real para actualizar usuario
+      await api.users.updateUserById(accessToken, userId, { isActive: !currentStatus })
+      
       setUsers(prev => prev.map(user => 
         user._id === userId 
           ? { ...user, isActive: !currentStatus }
@@ -131,7 +98,39 @@ const Admin = () => {
       utils.showSuccess(`Usuario ${!currentStatus ? 'activado' : 'desactivado'} exitosamente`)
     } catch (error) {
       console.error('Error updating user status:', error)
-      utils.showError(error)
+      utils.showError('Error al actualizar estado del usuario')
+    }
+  }
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este usuario?')) {
+      return
+    }
+
+    try {
+      // ✅ Usar endpoint real para eliminar usuario
+      await api.users.deleteUserById(accessToken, userId)
+      
+      setUsers(prev => prev.filter(user => user._id !== userId))
+      utils.showSuccess('Usuario eliminado exitosamente')
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      utils.showError('Error al eliminar usuario')
+    }
+  }
+
+  const handleResetUserPassword = async (userId) => {
+    if (!window.confirm('¿Estás seguro de que deseas resetear la contraseña de este usuario?')) {
+      return
+    }
+
+    try {
+      // ✅ Usar endpoint real para resetear contraseña
+      await api.users.resetUserPassword(accessToken, userId)
+      utils.showSuccess('Contraseña reseteada exitosamente')
+    } catch (error) {
+      console.error('Error resetting password:', error)
+      utils.showError('Error al resetear contraseña')
     }
   }
 
@@ -141,12 +140,14 @@ const Admin = () => {
     }
 
     try {
-      // Aquí iría la llamada real a la API
+      // ✅ Usar endpoint real para eliminar viaje
+      await api.trips.deleteTrip(accessToken, tripId)
+      
       setTrips(prev => prev.filter(trip => trip._id !== tripId))
       utils.showSuccess('Viaje eliminado exitosamente')
     } catch (error) {
       console.error('Error deleting trip:', error)
-      utils.showError(error)
+      utils.showError('Error al eliminar viaje')
     }
   }
 
@@ -248,8 +249,8 @@ const Admin = () => {
                         <h3 className="font-medium text-gray-900">{user.name}</h3>
                         <p className="text-sm text-gray-500">{user.email}</p>
                         <div className="flex items-center space-x-2 mt-1">
-                          <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                            {user.role}
+                          <Badge variant={user.roles?.includes('admin') ? 'default' : 'secondary'}>
+                            {user.roles?.[0] || 'user'}
                           </Badge>
                           <Badge variant={user.isActive ? 'success' : 'destructive'}>
                             {user.isActive ? 'Activo' : 'Inactivo'}

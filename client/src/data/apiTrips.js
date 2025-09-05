@@ -4,16 +4,47 @@ const API_URL = `${BASE_URL}/api/trips`;
 
 // Helper para manejar respuestas
 const handleResponse = async (res, defaultErrorMsg) => {
+  // Obtener el texto de la respuesta primero
+  const text = await res.text();
+  
   if (!res.ok) {
     let errorData;
     try {
-      errorData = await res.json();
+      errorData = JSON.parse(text);
     } catch {
-      throw new Error(defaultErrorMsg);
+      // Si no es JSON válido, usar el texto completo como error
+      throw new Error(`${defaultErrorMsg}: ${text || 'Unknown error'}`);
     }
     throw new Error(errorData.message || defaultErrorMsg);
   }
-  return res.json();
+  
+  // Para respuestas exitosas, intentar parsear como JSON
+  try {
+    const jsonData = JSON.parse(text);
+    
+    // Verificar si la respuesta tiene la estructura esperada
+    if (jsonData.success && jsonData.data) {
+      return jsonData;
+    } else if (jsonData.data) {
+      return jsonData;
+    } else {
+      // Si no tiene la estructura esperada, envolver la respuesta
+      return {
+        success: true,
+        data: jsonData
+      };
+    }
+  } catch {
+    // Si no es JSON válido, podría ser un token u otra respuesta de texto
+    // Envolver en la estructura esperada
+    return {
+      success: true,
+      data: {
+        response: text,
+        message: text
+      }
+    };
+  }
 };
 
 // Helper para obtener headers con autorización
@@ -136,7 +167,22 @@ export const generatePdfReport = async (token, tripId) => {
     headers: { "Authorization": `Bearer ${token}` },
     credentials: "include"
   });
-  return handleResponse(res, "Failed to generate PDF report");
+  
+  if (!res.ok) {
+    throw new Error(`Error al descargar PDF: ${res.status}`);
+  }
+  
+  // Retornar el blob directamente para PDF
+  return await res.blob();
+};
+
+export const createTripReport = async (token, tripId) => {
+  const res = await fetch(`${API_URL}/${tripId}/report`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${token}` },
+    credentials: "include"
+  });
+  return handleResponse(res, "Failed to create trip report");
 };
 
 export const exportTrip = async (token, tripId, format = 'json') => {

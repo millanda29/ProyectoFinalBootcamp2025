@@ -1,9 +1,9 @@
-import React, { useContext } from "react";
+import React from "react";
 import { Navigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 
 const ProtectedRoute = ({ children }) => {
-  const { accessToken, loading, hasLoggedOut } = useContext(AuthContext);
+  const { accessToken, loading, hasLoggedOut } = useAuth();
 
   // Si está cargando
   if (loading) {

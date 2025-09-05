@@ -60,7 +60,7 @@ import {
 
 // 🔹 Configuración general de la API
 export const API_CONFIG = {
-  baseUrl: 'http://localhost:4000/api',
+  baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:4000',
   version: '1.0.0',
   timeout: 30000, // 30 segundos
 };
@@ -70,7 +70,7 @@ const originalFetch = window.fetch;
 
 window.fetch = async function(url, options = {}) {
   // Solo interceptar si es una llamada a nuestra API
-  if (typeof url === 'string' && (url.includes('/api/') || url.startsWith('http://localhost:4000'))) {
+  if (typeof url === 'string' && (url.includes('/api/') || url.startsWith(API_CONFIG.baseUrl))) {
     const token = localStorage.getItem('token');
     
     // Añadir token a headers si existe y no es una ruta de auth
@@ -88,7 +88,7 @@ window.fetch = async function(url, options = {}) {
       if (response.status === 401 && !url.includes('/auth/refresh') && !url.includes('/auth/login') && !url.includes('/auth/register')) {
         // Intentar renovar el token
         try {
-          const refreshResponse = await originalFetch.call(this, `${API_CONFIG.baseUrl}/auth/refresh`, {
+          const refreshResponse = await originalFetch.call(this, `${API_CONFIG.baseUrl}/api/auth/refresh`, {
             method: 'POST',
             credentials: 'include'
           });
@@ -159,62 +159,63 @@ export const authAPI = {
 // 🔹 Exportar todas las funciones de usuarios
 export const usersAPI = {
   // Profile management
-  getProfile: (token = getStoredToken()) => users.getProfile(token),
-  getFullProfile: (token = getStoredToken()) => users.getFullProfile(token),
-  updateProfile: (profileData, token = getStoredToken()) => users.updateProfile(token, profileData),
-  updateTravelPreferences: (preferences, token = getStoredToken()) => users.updateTravelPreferences(token, preferences),
-  updateNotifications: (notifications, token = getStoredToken()) => users.updateNotifications(token, notifications),
-  getTravelHistory: (token = getStoredToken()) => users.getTravelHistory(token),
-  changePassword: (passwordData, token = getStoredToken()) => users.changePassword(token, passwordData),
-  findSimilarUsers: (queryParams, token = getStoredToken()) => users.findSimilarUsers(token, queryParams),
+  getProfile: (token) => users.getProfile(token),
+  getFullProfile: (token) => users.getFullProfile(token),
+  updateProfile: (token, profileData) => users.updateProfile(token, profileData),
+  updateTravelPreferences: (token, preferences) => users.updateTravelPreferences(token, preferences),
+  updateNotifications: (token, notifications) => users.updateNotifications(token, notifications),
+  getTravelHistory: (token) => users.getTravelHistory(token),
+  changePassword: (token, passwordData) => users.changePassword(token, passwordData),
+  findSimilarUsers: (token, queryParams) => users.findSimilarUsers(token, queryParams),
   
   // Admin functions
   admin: {
-    getAllUsers: (queryParams, token = getStoredToken()) => users.getAllUsers(token, queryParams),
-    createUser: (userData, token = getStoredToken()) => users.createUser(token, userData),
-    getUserById: (userId, token = getStoredToken()) => users.getUserById(token, userId),
-    updateUser: (userId, userData, token = getStoredToken()) => users.updateUser(token, userId, userData),
-    deleteUser: (userId, token = getStoredToken()) => users.deleteUser(token, userId),
-    resetPassword: (userId, passwordData, token = getStoredToken()) => users.resetPassword(token, userId, passwordData),
-    getStats: (token = getStoredToken()) => users.getStats(token),
+    getAllUsers: (token, queryParams) => users.getAllUsers(token, queryParams),
+    createUser: (token, userData) => users.createUser(token, userData),
+    getUserById: (token, userId) => users.getUserById(token, userId),
+    updateUser: (token, userId, userData) => users.updateUser(token, userId, userData),
+    deleteUser: (token, userId) => users.deleteUser(token, userId),
+    resetPassword: (token, userId, passwordData) => users.resetPassword(token, userId, passwordData),
+    getStats: (token) => users.getStats(token),
   }
 };
 
 // 🔹 Exportar todas las funciones de viajes
 export const tripsAPI = {
-  getMyTrips: (queryParams, token = getStoredToken()) => trips.getMyTrips(token, queryParams),
-  createTrip: (tripData, token = getStoredToken()) => trips.createTrip(token, tripData),
-  getTripById: (tripId, token = getStoredToken()) => trips.getTripById(token, tripId),
-  updateTrip: (tripId, tripData, token = getStoredToken()) => trips.updateTrip(token, tripId, tripData),
-  deleteTrip: (tripId, token = getStoredToken()) => trips.deleteTrip(token, tripId),
-  addCosts: (tripId, costs, token = getStoredToken()) => trips.addCosts(token, tripId, costs),
-  updateItinerary: (tripId, itinerary, token = getStoredToken()) => trips.updateItinerary(token, tripId, itinerary),
-  shareTrip: (tripId, shareData, token = getStoredToken()) => trips.shareTrip(token, tripId, shareData),
-  duplicateTrip: (tripId, newTripData, token = getStoredToken()) => trips.duplicateTrip(token, tripId, newTripData),
-  markTripCompleted: (tripId, token = getStoredToken()) => trips.markTripCompleted(token, tripId),
-  cancelTrip: (tripId, token = getStoredToken()) => trips.cancelTrip(token, tripId),
-  generatePdfReport: (tripId, token = getStoredToken()) => trips.generatePdfReport(token, tripId),
-  exportTrip: (tripId, format, token = getStoredToken()) => trips.exportTrip(token, tripId, format),
+  getMyTrips: (token, queryParams) => trips.getMyTrips(token, queryParams),
+  createTrip: (token, tripData) => trips.createTrip(token, tripData),
+  getTripById: (token, tripId) => trips.getTripById(token, tripId),
+  updateTrip: (token, tripId, tripData) => trips.updateTrip(token, tripId, tripData),
+  deleteTrip: (token, tripId) => trips.deleteTrip(token, tripId),
+  addCosts: (token, tripId, costs) => trips.addCosts(token, tripId, costs),
+  updateItinerary: (token, tripId, itinerary) => trips.updateItinerary(token, tripId, itinerary),
+  shareTrip: (token, tripId, shareData) => trips.shareTrip(token, tripId, shareData),
+  duplicateTrip: (token, tripId, newTripData) => trips.duplicateTrip(token, tripId, newTripData),
+  markTripCompleted: (token, tripId) => trips.markTripCompleted(token, tripId),
+  cancelTrip: (token, tripId) => trips.cancelTrip(token, tripId),
+  generatePdfReport: (token, tripId) => trips.generatePdfReport(token, tripId),
+  createTripReport: (token, tripId) => trips.createTripReport(token, tripId),
+  exportTrip: (token, tripId, format) => trips.exportTrip(token, tripId, format),
 };
 
 // 🔹 Exportar todas las funciones de chat/IA
 export const chatAPI = {
-  generateBasicItinerary: (itineraryData, token = getStoredToken()) => chat.generateBasicItinerary(token, itineraryData),
-  generateTripItinerary: (tripId, preferences, token = getStoredToken()) => chat.generateTripItinerary(token, tripId, preferences),
-  chatAssistant: (chatData, token = getStoredToken()) => chat.chatAssistant(token, chatData),
-  chatAssistantStream: (chatData, onMessage, token = getStoredToken()) => chat.chatAssistantStream(token, chatData, onMessage),
+  generateBasicItinerary: (token, itineraryData) => chat.generateBasicItinerary(token, itineraryData),
+  generateTripItinerary: (token, tripId, preferences) => chat.generateTripItinerary(token, tripId, preferences),
+  chatAssistant: (token, chatData) => chat.chatAssistant(token, chatData),
+  chatAssistantStream: (token, chatData, onMessage) => chat.chatAssistantStream(token, chatData, onMessage),
   
   // Conversation management
-  getChatHistory: (conversationId, token = getStoredToken()) => chat.getChatHistory(token, conversationId),
-  clearChatHistory: (conversationId, token = getStoredToken()) => chat.clearChatHistory(token, conversationId),
-  getMyConversations: (token = getStoredToken()) => chat.getMyConversations(token),
+  getChatHistory: (token, conversationId) => chat.getChatHistory(token, conversationId),
+  clearChatHistory: (token, conversationId) => chat.clearChatHistory(token, conversationId),
+  getMyConversations: (token) => chat.getMyConversations(token),
   
   // AI suggestions
-  getDestinationSuggestions: (preferences, token = getStoredToken()) => chat.getDestinationSuggestions(token, preferences),
-  getBudgetEstimate: (tripDetails, token = getStoredToken()) => chat.getBudgetEstimate(token, tripDetails),
-  getActivityRecommendations: (destination, preferences, token = getStoredToken()) => chat.getActivityRecommendations(token, destination, preferences),
-  getWeatherInfo: (destination, dates, token = getStoredToken()) => chat.getWeatherInfo(token, destination, dates),
-  getTravelTips: (destination, token = getStoredToken()) => chat.getTravelTips(token, destination),
+  getDestinationSuggestions: (token, preferences) => chat.getDestinationSuggestions(token, preferences),
+  getBudgetEstimate: (token, tripDetails) => chat.getBudgetEstimate(token, tripDetails),
+  getActivityRecommendations: (token, destination, preferences) => chat.getActivityRecommendations(token, destination, preferences),
+  getWeatherInfo: (token, destination, dates) => chat.getWeatherInfo(token, destination, dates),
+  getTravelTips: (token, destination) => chat.getTravelTips(token, destination),
 };
 
 // 🔹 Exportar funciones utilitarias
