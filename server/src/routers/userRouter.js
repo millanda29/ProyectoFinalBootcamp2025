@@ -15,6 +15,11 @@ router.put('/me', authenticateJWT, userController.updateProfile);
 router.get('/me/trips', authenticateJWT, userController.getTravelHistory);
 router.put('/me/change-password', authenticateJWT, userController.changePassword);
 
+// Gestión de cuenta
+router.post('/me/schedule-deletion', authenticateJWT, userController.requestAccountDeletion);
+router.delete('/me/cancel-deletion', authenticateJWT, userController.cancelAccountDeletion);
+router.delete('/me', authenticateJWT, userController.deleteMyAccount);
+
 // Preferencias y configuración
 router.put('/me/preferences', authenticateJWT, userController.updateTravelPreferences);
 router.put('/me/notifications', authenticateJWT, userController.updateNotifications);

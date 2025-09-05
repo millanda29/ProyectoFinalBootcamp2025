@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import router from './routers/index.js';
 import authRouter from './auth/authRouter.js';
 import errorHandler from './middlewares/errorHandler.js';
+import { startScheduledDeletionTask } from './tasks/scheduledDeletions.js';
 
 dotenv.config();
 
@@ -37,5 +38,8 @@ app.use('/api/auth', authRouter);
 
 // Middleware de errores
 app.use(errorHandler);
+
+// Inicializar tareas programadas
+startScheduledDeletionTask();
 
 export default app;

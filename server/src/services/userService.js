@@ -326,6 +326,106 @@ const userService = {
       totalTrips,
       recentUsers
     };
+  },
+
+  // Programar eliminación de cuenta (31 días)
+  async scheduleAccountDeletion(userId, reason = 'Usuario solicitó eliminación') {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    if (user.deletionScheduled?.isScheduled) {
+      throw new Error('Ya hay una eliminación programada para esta cuenta');
+    }
+
+    const scheduledDate = new Date();
+    scheduledDate.setDate(scheduledDate.getDate() + 31); // 31 días desde ahora
+
+    await User.findByIdAndUpdate(userId, {
+      'deletionScheduled.isScheduled': true,
+      'deletionScheduled.scheduledDate': scheduledDate,
+      'deletionScheduled.requestedAt': new Date(),
+      'deletionScheduled.reason': reason
+    });
+
+    return {
+      scheduledDate,
+      daysRemaining: 31
+    };
+  },
+
+  // Cancelar eliminación programada
+  async cancelAccountDeletion(userId) {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    if (!user.deletionScheduled?.isScheduled) {
+      throw new Error('No hay ninguna eliminación programada para esta cuenta');
+    }
+
+    await User.findByIdAndUpdate(userId, {
+      'deletionScheduled.isScheduled': false,
+      'deletionScheduled.scheduledDate': null,
+      'deletionScheduled.requestedAt': null,
+      'deletionScheduled.reason': null
+    });
+  },
+
+  // Eliminar mi cuenta inmediatamente
+  async deleteMyAccount(userId, password) {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    // Verificar contraseña
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isPasswordValid) {
+      throw new Error('Contraseña incorrecta');
+    }
+
+    // Eliminar todos los viajes del usuario
+    await Trip.deleteMany({ userId });
+
+    // TODO: Aquí también deberíamos limpiar PDFs asociados
+    
+    // Eliminar usuario
+    await User.findByIdAndDelete(userId);
+
+    // TODO: Invalidar todos los tokens del usuario
+  },
+
+  // Función para procesar eliminaciones programadas (para ejecutar diariamente)
+  async processScheduledDeletions() {
+    const now = new Date();
+    const usersToDelete = await User.find({
+      'deletionScheduled.isScheduled': true,
+      'deletionScheduled.scheduledDate': { $lte: now }
+    });
+
+    const deletedUsers = [];
+    for (const user of usersToDelete) {
+      try {
+        // Eliminar viajes del usuario
+        await Trip.deleteMany({ userId: user._id });
+        
+        // Eliminar usuario
+        await User.findByIdAndDelete(user._id);
+        
+        deletedUsers.push({
+          id: user._id,
+          email: user.email,
+          scheduledDate: user.deletionScheduled.scheduledDate
+        });
+      } catch (error) {
+        console.error(`Error eliminando usuario ${user._id}:`, error);
+      }
+    }
+
+    return deletedUsers;
   }
 
 };

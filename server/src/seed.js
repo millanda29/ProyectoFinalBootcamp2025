@@ -27,7 +27,7 @@ async function seed() {
         email: "maria.garcia@email.com",
         passwordHash: await bcrypt.hash("Password123!", 10),
         fullName: "María García",
-        phone: "+34 612 345 678",
+        phone: "+34612345678",
         location: "Madrid, España",
         bio: "Apasionada por los viajes y la fotografía. Me encanta descubrir nuevas culturas y compartir mis experiencias.",
         website: "https://mariaviajes.blog",
@@ -66,7 +66,7 @@ async function seed() {
         email: "alice@travelmate.com",
         passwordHash: await bcrypt.hash("Password123!", 10),
         fullName: "Alice Johnson",
-        phone: "+1 555 123 4567",
+        phone: "+15551234567",
         location: "New York, USA",
         bio: "Travel enthusiast and food lover. Always planning my next adventure!",
         roles: ["traveler"],
@@ -97,7 +97,7 @@ async function seed() {
         email: "bob@travelmate.com", 
         passwordHash: await bcrypt.hash("Secret456$", 10),
         fullName: "Bob Smith",
-        phone: "+44 20 7946 0958",
+        phone: "+442079460958",
         location: "London, UK",
         bio: "Adventure seeker and backpacker. Love exploring off the beaten path destinations.",
         roles: ["traveler"],
@@ -128,7 +128,7 @@ async function seed() {
         email: "admin@travelmate.com",
         passwordHash: await bcrypt.hash("Admin789#", 10),
         fullName: "Sarah Admin",
-        phone: "+1 555 999 0000",
+        phone: "+15559990000",
         location: "San Francisco, USA",
         bio: "TravelMate platform administrator. Here to help you have amazing travel experiences!",
         roles: ["admin"],
@@ -159,7 +159,7 @@ async function seed() {
         email: "carlos@travelmate.com",
         passwordHash: await bcrypt.hash("Travel2024!", 10),
         fullName: "Carlos Martinez",
-        phone: "+52 55 1234 5678",
+        phone: "+525512345678",
         location: "Ciudad de México, México",
         bio: "Ingeniero de software que ama viajar. Siempre en busca de la mejor comida local y experiencias auténticas.",
         website: "https://carlosviaja.mx",
@@ -334,7 +334,7 @@ async function seed() {
     // 🔹 Token de ejemplo
     await RefreshToken.create({
       userId: users[0]._id,
-      tokenHash: await bcrypt.hash("randomtoken123", 10),
+      token: await bcrypt.hash("randomtoken123", 10),
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 días
     });
 

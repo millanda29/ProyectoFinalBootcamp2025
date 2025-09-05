@@ -8,9 +8,6 @@ const router = express.Router();
 // Historial del usuario autenticado
 router.get('/my', authenticateJWT, tripController.getMyTrips);
 
-// Solo admin puede ver todos los viajes
-router.get('/', authenticateJWT, isAdmin, tripController.getAllTrips);
-
 // CRUD de viajes
 router.post('/', authenticateJWT, tripController.createTrip);
 router.get('/:id', authenticateJWT, tripController.getTripById);
@@ -24,5 +21,12 @@ router.put('/:id/itinerary', authenticateJWT, tripController.updateItinerary);
 // Rutas para reportes
 router.post('/:id/report', authenticateJWT, tripController.generateReport);
 router.get('/:id/reports', authenticateJWT, tripController.getTripReports);
+router.get('/:id/pdf', authenticateJWT, tripController.servePDF);
+
+// Solo admin puede ver todos los viajes
+router.get('/', authenticateJWT, isAdmin, tripController.getAllTrips);
+
+// Ruta de administración para limpiar PDFs huérfanos
+router.delete('/cleanup/orphaned-pdfs', authenticateJWT, isAdmin, tripController.cleanupOrphanedPDFs);
 
 export default router;

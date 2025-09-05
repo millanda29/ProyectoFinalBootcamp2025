@@ -72,6 +72,36 @@ const authController = {
     } catch (err) {
       next(err);
     }
+  },
+
+  // Cambiar contraseña
+  changePassword: async (req, res, next) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({
+          success: false,
+          message: 'Contraseña actual y nueva contraseña son requeridas'
+        });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({
+          success: false,
+          message: 'La nueva contraseña debe tener al menos 6 caracteres'
+        });
+      }
+
+      await authService.changePassword(req.user.id, currentPassword, newPassword);
+      
+      res.json({
+        success: true,
+        message: 'Contraseña actualizada exitosamente'
+      });
+    } catch (err) {
+      next(err);
+    }
   }
 
 };

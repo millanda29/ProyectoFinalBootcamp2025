@@ -127,6 +127,32 @@ const authService = {
   // Logout
   async logout(token) {
     await RefreshToken.deleteOne({ token });
+  },
+
+  // Cambiar contraseña
+  async changePassword(userId, currentPassword, newPassword) {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    // Verificar contraseña actual
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isCurrentPasswordValid) {
+      throw new Error('Contraseña actual incorrecta');
+    }
+
+    // Hash de la nueva contraseña
+    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+    
+    // Actualizar contraseña
+    await User.findByIdAndUpdate(userId, { 
+      passwordHash: newPasswordHash,
+      updatedAt: new Date()
+    });
+
+    // Invalidar todos los refresh tokens del usuario por seguridad
+    await RefreshToken.deleteMany({ userId });
   }
 
 };

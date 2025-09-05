@@ -93,6 +93,34 @@ const tripService = {
       { $push: { reports: reportData } },
       { new: true }
     );
+  },
+
+  // Limpiar archivos de reportes antes de eliminar el trip
+  async cleanupTripReports(tripId) {
+    try {
+      const trip = await Trip.findById(tripId);
+      if (!trip || !trip.reports || trip.reports.length === 0) {
+        return { success: true, deletedFiles: 0 };
+      }
+
+      let deletedFiles = 0;
+      for (const report of trip.reports) {
+        if (report.format === 'pdf' && report.fileUrl) {
+          try {
+            const reportService = await import('./reportService.js');
+            const success = await reportService.default.deletePDFFile(report.fileUrl);
+            if (success) deletedFiles++;
+          } catch (error) {
+            console.warn(`⚠️ Error eliminando reporte: ${report.fileUrl}`, error.message);
+          }
+        }
+      }
+
+      return { success: true, deletedFiles };
+    } catch (error) {
+      console.error('Error limpiando reportes del trip:', error);
+      return { success: false, deletedFiles: 0 };
+    }
   }
 };
 

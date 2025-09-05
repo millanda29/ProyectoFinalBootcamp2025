@@ -99,6 +99,14 @@ const userSchema = new mongoose.Schema({
     countriesVisited: [{ type: String }],
     totalSpent: { type: Number, default: 0 },
     totalSaved: { type: Number, default: 0 }
+  },
+  
+  // Campos para eliminación programada
+  deletionScheduled: {
+    isScheduled: { type: Boolean, default: false },
+    scheduledDate: { type: Date },
+    requestedAt: { type: Date },
+    reason: { type: String, trim: true }
   }
   
 }, { timestamps: true });

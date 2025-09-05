@@ -351,6 +351,48 @@ const reportService = {
       console.error('Error eliminando archivo PDF:', error);
       return false;
     }
+  },
+
+  // Función para eliminar un archivo PDF específico
+  async deletePDFFile(fileUrl) {
+    try {
+      const fileName = path.basename(fileUrl);
+      const filePath = path.join(process.cwd(), 'reports', fileName);
+      await fs.unlink(filePath);
+      console.log(`✅ PDF eliminado exitosamente: ${fileName}`);
+      return true;
+    } catch (error) {
+      console.error(`❌ Error eliminando PDF ${fileUrl}:`, error.message);
+      return false;
+    }
+  },
+
+  // Función para limpiar PDFs huérfanos (opcional, para mantenimiento)
+  async cleanOrphanedPDFs(existingReports = []) {
+    try {
+      const reportsDir = path.join(process.cwd(), 'reports');
+      const files = await fs.readdir(reportsDir);
+      const pdfFiles = files.filter(file => file.endsWith('.pdf'));
+      
+      const validFiles = existingReports.map(report => path.basename(report.fileUrl));
+      const orphanedFiles = pdfFiles.filter(file => !validFiles.includes(file));
+      
+      let deletedCount = 0;
+      for (const file of orphanedFiles) {
+        try {
+          await fs.unlink(path.join(reportsDir, file));
+          deletedCount++;
+        } catch (error) {
+          console.warn(`⚠️ No se pudo eliminar PDF huérfano: ${file}`, error.message);
+        }
+      }
+      
+      console.log(`🧹 Limpieza completada: ${deletedCount} PDFs huérfanos eliminados`);
+      return deletedCount;
+    } catch (error) {
+      console.error('Error durante la limpieza de PDFs:', error);
+      return 0;
+    }
   }
 };
 

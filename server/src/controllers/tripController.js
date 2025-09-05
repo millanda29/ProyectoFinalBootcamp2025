@@ -1,5 +1,7 @@
 import tripService from '../services/tripService.js';
 import reportService from '../services/reportService.js';
+import path from 'path';
+import fs from 'fs/promises';
 
 // Solo admin puede ver todos los viajes
 const getAllTrips = async (req, res, next) => {
@@ -38,15 +40,15 @@ const getTripById = async (req, res, next) => {
         message: "Trip not found" 
       });
     }
-    
-    // Verificar que el usuario puede acceder al trip
-    if (trip.userId.toString() !== req.user.id && !req.user.roles.includes('admin')) {
+
+    // ✅ Solo dueño puede acceder
+    if (trip.userId.id !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: "Access denied"
       });
     }
-    
+
     res.json({
       success: true,
       data: trip
@@ -81,15 +83,15 @@ const updateTrip = async (req, res, next) => {
         message: "Trip not found" 
       });
     }
-    
-    // Verificar que el usuario puede modificar el trip
-    if (trip.userId.toString() !== req.user.id && !req.user.roles.includes('admin')) {
+
+    // ✅ Solo dueño puede modificar
+    if (trip.userId.id !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: "Access denied"
       });
     }
-    
+
     const updatedTrip = await tripService.updateTrip(req.params.id, req.body);
     res.json({
       success: true,
@@ -110,15 +112,21 @@ const deleteTrip = async (req, res, next) => {
         message: "Trip not found" 
       });
     }
-    
-    // Verificar que el usuario puede eliminar el trip
-    if (trip.userId.toString() !== req.user.id && !req.user.roles.includes('admin')) {
+
+    // ✅ Solo dueño puede eliminar
+    if (trip.userId._id ? trip.userId._id.toString() !== req.user.id : trip.userId.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: "Access denied"
       });
     }
-    
+
+    // 🗑️ Limpiar archivos PDF asociados antes de borrar el viaje
+    const cleanupResult = await tripService.cleanupTripReports(req.params.id);
+    if (cleanupResult.deletedFiles > 0) {
+      console.log(`🧹 ${cleanupResult.deletedFiles} archivos PDF eliminados para el viaje ${req.params.id}`);
+    }
+
     await tripService.deleteTrip(req.params.id);
     res.status(204).send();
   } catch (err) {
@@ -136,7 +144,7 @@ const addCosts = async (req, res, next) => {
         message: "Costs must be an array"
       });
     }
-    
+
     const trip = await tripService.getTripById(req.params.id);
     if (!trip) {
       return res.status(404).json({ 
@@ -144,15 +152,15 @@ const addCosts = async (req, res, next) => {
         message: "Trip not found" 
       });
     }
-    
-    // Verificar acceso
-    if (trip.userId.toString() !== req.user.id && !req.user.roles.includes('admin')) {
+
+    // ✅ Solo dueño puede agregar costos
+    if (trip.userId.id !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: "Access denied"
       });
     }
-    
+
     const updatedTrip = await tripService.addCosts(req.params.id, costs);
     res.json({
       success: true,
@@ -174,7 +182,7 @@ const updateItinerary = async (req, res, next) => {
         message: "Itinerary must be an array"
       });
     }
-    
+
     const trip = await tripService.getTripById(req.params.id);
     if (!trip) {
       return res.status(404).json({ 
@@ -182,15 +190,15 @@ const updateItinerary = async (req, res, next) => {
         message: "Trip not found" 
       });
     }
-    
-    // Verificar acceso
-    if (trip.userId.toString() !== req.user.id && !req.user.roles.includes('admin')) {
+
+    // ✅ Solo dueño puede actualizar itinerario
+    if (trip.userId.id !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: "Access denied"
       });
     }
-    
+
     const updatedTrip = await tripService.updateItinerary(req.params.id, itinerary);
     res.json({
       success: true,
@@ -212,9 +220,9 @@ const generateReport = async (req, res, next) => {
         message: "Trip not found" 
       });
     }
-    
-    // Verificar acceso
-    if (trip.userId.toString() !== req.user.id && !req.user.roles.includes('admin')) {
+
+    // ✅ Solo dueño puede generar reporte
+    if (trip.userId._id ? trip.userId._id.toString() !== req.user.id : trip.userId.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: "Access denied"
@@ -223,16 +231,16 @@ const generateReport = async (req, res, next) => {
 
     // Generar el PDF
     const reportData = await reportService.generateTripReportPDF(trip, req.user);
-    
+
     // Guardar información del reporte en el trip
     const reportInfo = {
       fileUrl: reportData.fileUrl,
       format: 'pdf',
       generatedAt: new Date()
     };
-    
+
     await tripService.addReport(req.params.id, reportInfo);
-    
+
     res.json({
       success: true,
       data: {
@@ -242,7 +250,6 @@ const generateReport = async (req, res, next) => {
       },
       message: "Reporte PDF generado exitosamente"
     });
-    
   } catch (err) {
     next(err);
   }
@@ -258,19 +265,100 @@ const getTripReports = async (req, res, next) => {
         message: "Trip not found" 
       });
     }
-    
-    // Verificar acceso
-    if (trip.userId.toString() !== req.user.id && !req.user.roles.includes('admin')) {
+
+    // ✅ Solo dueño puede ver reportes
+    if (trip.userId.id !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: "Access denied"
       });
     }
-    
+
     res.json({
       success: true,
       data: trip.reports,
       count: trip.reports.length
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Servir archivos PDF
+const servePDF = async (req, res, next) => {
+  try {
+    const trip = await tripService.getTripById(req.params.id);
+    if (!trip) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Trip not found" 
+      });
+    }
+
+    // ✅ Solo dueño puede descargar el PDF
+    if (trip.userId._id ? trip.userId._id.toString() !== req.user.id : trip.userId.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied"
+      });
+    }
+
+    // Buscar si existe un reporte PDF para este trip
+    const report = trip.reports.find(r => r.format === 'pdf');
+    if (!report) {
+      return res.status(404).json({
+        success: false,
+        message: "No PDF report found for this trip"
+      });
+    }
+
+    // Construir la ruta del archivo
+    const fileName = path.basename(report.fileUrl);
+    const filePath = path.join(process.cwd(), 'reports', fileName);
+
+    try {
+      await fs.access(filePath);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.sendFile(path.resolve(filePath));
+    } catch (fileError) {
+      return res.status(404).json({
+        success: false,
+        message: "PDF file not found on server"
+      });
+    }
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Función de administración para limpiar PDFs huérfanos
+const cleanupOrphanedPDFs = async (req, res, next) => {
+  try {
+    // Solo administradores pueden ejecutar esta función
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Admin only."
+      });
+    }
+
+    // Obtener todos los reportes existentes
+    const trips = await tripService.getAllTrips();
+    const allReports = [];
+    trips.forEach(trip => {
+      if (trip.reports) {
+        allReports.push(...trip.reports);
+      }
+    });
+
+    const deletedCount = await reportService.cleanOrphanedPDFs(allReports);
+    
+    res.json({
+      success: true,
+      message: `Limpieza completada. ${deletedCount} archivos PDF huérfanos eliminados.`,
+      deletedFiles: deletedCount
     });
   } catch (err) {
     next(err);
@@ -287,5 +375,7 @@ export default {
   addCosts,
   updateItinerary,
   generateReport,
-  getTripReports
+  getTripReports,
+  servePDF,
+  cleanupOrphanedPDFs
 };

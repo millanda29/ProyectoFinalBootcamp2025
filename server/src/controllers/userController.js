@@ -249,6 +249,59 @@ const userController = {
     } catch (err) {
       next(err);
     }
+  },
+
+  // Solicitar eliminación de cuenta (31 días)
+  requestAccountDeletion: async (req, res, next) => {
+    try {
+      const { reason } = req.body;
+      const result = await userService.scheduleAccountDeletion(req.user.id, reason);
+      
+      res.json({
+        success: true,
+        message: 'Solicitud de eliminación programada exitosamente',
+        data: {
+          scheduledDate: result.scheduledDate,
+          daysRemaining: result.daysRemaining
+        }
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  // Cancelar eliminación programada
+  cancelAccountDeletion: async (req, res, next) => {
+    try {
+      await userService.cancelAccountDeletion(req.user.id);
+      
+      res.json({
+        success: true,
+        message: 'Eliminación de cuenta cancelada exitosamente'
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  // Eliminar cuenta inmediatamente (solo el propio usuario)
+  deleteMyAccount: async (req, res, next) => {
+    try {
+      const { password } = req.body;
+      
+      if (!password) {
+        return res.status(400).json({
+          success: false,
+          message: 'Contraseña es requerida para confirmar eliminación'
+        });
+      }
+
+      await userService.deleteMyAccount(req.user.id, password);
+      
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
   }
 
 };
