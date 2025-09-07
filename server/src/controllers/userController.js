@@ -302,6 +302,49 @@ const userController = {
     } catch (err) {
       next(err);
     }
+  },
+
+  // ===== FUNCIONES ADMIN PARA ELIMINACIÓN LÓGICA =====
+
+  // Obtener usuarios eliminados (solo admin)
+  getDeletedUsers: async (req, res, next) => {
+    try {
+      const deletedUsers = await userService.getDeletedUsers();
+      res.json({
+        success: true,
+        data: deletedUsers,
+        count: deletedUsers.length
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  // Restaurar usuario eliminado (solo admin)
+  restoreUser: async (req, res, next) => {
+    try {
+      const result = await userService.restoreUser(req.params.id);
+      res.json({
+        success: true,
+        data: result.user,
+        message: result.message
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  // Eliminar usuario permanentemente (solo admin)
+  permanentlyDeleteUser: async (req, res, next) => {
+    try {
+      const result = await userService.permanentlyDeleteUser(req.params.id);
+      res.json({
+        success: true,
+        message: result.message
+      });
+    } catch (err) {
+      next(err);
+    }
   }
 
 };

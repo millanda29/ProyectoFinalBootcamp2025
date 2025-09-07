@@ -276,19 +276,60 @@ const userService = {
     return user;
   },
 
-  // Eliminar usuario (solo admin)
+  // Eliminar usuario (solo admin) - Eliminación lógica
   async deleteUser(userId) {
     // Verificar que el usuario existe
     const user = await User.findById(userId);
     if (!user) throw new Error('Usuario no encontrado.');
 
-    // Eliminar todos los trips del usuario
+    // Usar eliminación lógica para el usuario
+    await user.softDelete();
+
+    // También marcar como eliminados todos los trips del usuario
+    await Trip.updateMany(
+      { userId: userId, isDeleted: { $ne: true } },
+      { 
+        isDeleted: true, 
+        deletedAt: new Date(),
+        deletedBy: userId 
+      }
+    );
+
+    return { message: 'Usuario y sus viajes marcados como eliminados correctamente.' };
+  },
+
+  // Restaurar usuario eliminado (solo admin)
+  async restoreUser(userId) {
+    const user = await User.findById(userId).setOptions({ includeDeleted: true });
+    if (!user) throw new Error('Usuario no encontrado.');
+    
+    if (!user.isDeleted) {
+      throw new Error('El usuario no está eliminado');
+    }
+    
+    await user.restore();
+    return { message: 'Usuario restaurado correctamente.', user };
+  },
+
+  // Obtener usuarios eliminados (solo admin)
+  async getDeletedUsers() {
+    return await User.find({ isDeleted: true }).setOptions({ includeDeleted: true })
+      .populate('deletedBy', 'fullName email')
+      .select('-passwordHash');
+  },
+
+  // Eliminación física permanente (solo admin)
+  async permanentlyDeleteUser(userId) {
+    const user = await User.findById(userId).setOptions({ includeDeleted: true });
+    if (!user) throw new Error('Usuario no encontrado.');
+
+    // Eliminar físicamente todos los trips del usuario
     await Trip.deleteMany({ userId });
 
-    // Eliminar el usuario
+    // Eliminar físicamente el usuario
     await User.findByIdAndDelete(userId);
 
-    return { message: 'Usuario y sus viajes eliminados correctamente.' };
+    return { message: 'Usuario eliminado permanentemente.' };
   },
 
   // Resetear contraseña de usuario (solo admin)
@@ -374,7 +415,7 @@ const userService = {
     });
   },
 
-  // Eliminar mi cuenta inmediatamente
+  // Eliminar mi cuenta inmediatamente - Eliminación lógica
   async deleteMyAccount(userId, password) {
     const user = await User.findById(userId);
     if (!user) {
@@ -387,13 +428,18 @@ const userService = {
       throw new Error('Contraseña incorrecta');
     }
 
-    // Eliminar todos los viajes del usuario
-    await Trip.deleteMany({ userId });
+    // Usar eliminación lógica para el usuario
+    await user.softDelete(userId);
 
-    // TODO: Aquí también deberíamos limpiar PDFs asociados
-    
-    // Eliminar usuario
-    await User.findByIdAndDelete(userId);
+    // También marcar como eliminados todos los viajes del usuario
+    await Trip.updateMany(
+      { userId: userId, isDeleted: { $ne: true } },
+      { 
+        isDeleted: true, 
+        deletedAt: new Date(),
+        deletedBy: userId 
+      }
+    );
 
     // TODO: Invalidar todos los tokens del usuario
   },
@@ -409,11 +455,18 @@ const userService = {
     const deletedUsers = [];
     for (const user of usersToDelete) {
       try {
-        // Eliminar viajes del usuario
-        await Trip.deleteMany({ userId: user._id });
+        // Usar eliminación lógica para el usuario
+        await user.softDelete();
         
-        // Eliminar usuario
-        await User.findByIdAndDelete(user._id);
+        // También marcar como eliminados todos los viajes del usuario
+        await Trip.updateMany(
+          { userId: user._id, isDeleted: { $ne: true } },
+          { 
+            isDeleted: true, 
+            deletedAt: new Date(),
+            deletedBy: user._id 
+          }
+        );
         
         deletedUsers.push({
           id: user._id,

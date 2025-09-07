@@ -43,7 +43,41 @@ const tripService = {
     const trip = await Trip.findById(tripId);
     if (!trip) return null;
     
-    // Remover el trip del usuario
+    // Usar eliminación lógica en lugar de física
+    await trip.softDelete();
+    
+    return trip;
+  },
+
+  // Restaurar trip eliminado (solo admin)
+  async restoreTrip(tripId) {
+    const trip = await Trip.findById(tripId).setOptions({ includeDeleted: true });
+    if (!trip) return null;
+    
+    if (!trip.isDeleted) {
+      throw new Error('El viaje no está eliminado');
+    }
+    
+    await trip.restore();
+    return trip;
+  },
+
+  // Obtener trips eliminados (solo admin)
+  async getDeletedTrips() {
+    return await Trip.find({ isDeleted: true }).setOptions({ includeDeleted: true })
+      .populate('userId', 'fullName email')
+      .populate('deletedBy', 'fullName email');
+  },
+
+  // Eliminación física permanente (solo admin)
+  async permanentlyDeleteTrip(tripId) {
+    const trip = await Trip.findById(tripId).setOptions({ includeDeleted: true });
+    if (!trip) return null;
+    
+    // Limpiar archivos PDF asociados antes de borrar permanentemente
+    await this.cleanupTripReports(tripId);
+    
+    // Remover el trip del usuario si aún existe la referencia
     await User.findByIdAndUpdate(
       trip.userId,
       { $pull: { createdTrips: tripId } }
@@ -111,7 +145,7 @@ const tripService = {
             const success = await reportService.default.deletePDFFile(report.fileUrl);
             if (success) deletedFiles++;
           } catch (error) {
-            console.warn(`⚠️ Error eliminando reporte: ${report.fileUrl}`, error.message);
+            // Error eliminando reporte individual
           }
         }
       }

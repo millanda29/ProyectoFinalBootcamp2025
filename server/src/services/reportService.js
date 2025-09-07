@@ -359,7 +359,6 @@ const reportService = {
       const fileName = path.basename(fileUrl);
       const filePath = path.join(process.cwd(), 'reports', fileName);
       await fs.unlink(filePath);
-      console.log(`✅ PDF eliminado exitosamente: ${fileName}`);
       return true;
     } catch (error) {
       console.error(`❌ Error eliminando PDF ${fileUrl}:`, error.message);
@@ -387,7 +386,6 @@ const reportService = {
         }
       }
       
-      console.log(`🧹 Limpieza completada: ${deletedCount} PDFs huérfanos eliminados`);
       return deletedCount;
     } catch (error) {
       console.error('Error durante la limpieza de PDFs:', error);

@@ -107,7 +107,12 @@ const userSchema = new mongoose.Schema({
     scheduledDate: { type: Date },
     requestedAt: { type: Date },
     reason: { type: String, trim: true }
-  }
+  },
+  
+  // Campos para eliminación lógica
+  isDeleted: { type: Boolean, default: false, index: true },
+  deletedAt: { type: Date },
+  deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
   
 }, { timestamps: true });
 
@@ -116,6 +121,33 @@ userSchema.index({ email: 1 });
 userSchema.index({ fullName: 'text', location: 'text' }); // búsqueda de texto
 userSchema.index({ 'travelPreferences.favoriteDestination': 1 });
 userSchema.index({ isActive: 1, roles: 1 });
+userSchema.index({ isDeleted: 1 }); // índice para eliminación lógica
+
+// Middleware para filtrar elementos eliminados en todas las consultas find
+userSchema.pre(/^find/, function() {
+  // Solo aplicar el filtro si no se ha especificado explícitamente incluir eliminados
+  if (!this.getOptions().includeDeleted) {
+    this.where({ isDeleted: { $ne: true } });
+  }
+});
+
+// Método para eliminación lógica
+userSchema.methods.softDelete = function(deletedBy = null) {
+  this.isDeleted = true;
+  this.deletedAt = new Date();
+  if (deletedBy) {
+    this.deletedBy = deletedBy;
+  }
+  return this.save();
+};
+
+// Método para restaurar usuario eliminado
+userSchema.methods.restore = function() {
+  this.isDeleted = false;
+  this.deletedAt = null;
+  this.deletedBy = null;
+  return this.save();
+};
 
 // Virtual para contar viajes activos
 userSchema.virtual('activeTrips', {

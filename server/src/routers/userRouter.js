@@ -39,4 +39,9 @@ router.put('/admin/:id', authenticateJWT, isAdmin, userController.updateUser);
 router.delete('/admin/:id', authenticateJWT, isAdmin, userController.deleteUser);
 router.put('/admin/:id/reset-password', authenticateJWT, isAdmin, userController.resetPassword);
 
+// Rutas de administración para eliminación lógica
+router.get('/admin/deleted', authenticateJWT, isAdmin, userController.getDeletedUsers);
+router.post('/admin/:id/restore', authenticateJWT, isAdmin, userController.restoreUser);
+router.delete('/admin/:id/permanent', authenticateJWT, isAdmin, userController.permanentlyDeleteUser);
+
 export default router;

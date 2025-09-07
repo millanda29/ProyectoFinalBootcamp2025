@@ -121,12 +121,7 @@ const deleteTrip = async (req, res, next) => {
       });
     }
 
-    // 🗑️ Limpiar archivos PDF asociados antes de borrar el viaje
-    const cleanupResult = await tripService.cleanupTripReports(req.params.id);
-    if (cleanupResult.deletedFiles > 0) {
-      console.log(`🧹 ${cleanupResult.deletedFiles} archivos PDF eliminados para el viaje ${req.params.id}`);
-    }
-
+    // Usar eliminación lógica
     await tripService.deleteTrip(req.params.id);
     res.status(204).send();
   } catch (err) {
@@ -365,6 +360,84 @@ const cleanupOrphanedPDFs = async (req, res, next) => {
   }
 };
 
+// ===== FUNCIONES ADMIN PARA ELIMINACIÓN LÓGICA =====
+
+// Obtener trips eliminados (solo admin)
+const getDeletedTrips = async (req, res, next) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Admin only."
+      });
+    }
+
+    const deletedTrips = await tripService.getDeletedTrips();
+    res.json({
+      success: true,
+      data: deletedTrips,
+      count: deletedTrips.length
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Restaurar trip eliminado (solo admin)
+const restoreTrip = async (req, res, next) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Admin only."
+      });
+    }
+
+    const trip = await tripService.restoreTrip(req.params.id);
+    if (!trip) {
+      return res.status(404).json({
+        success: false,
+        message: "Trip not found"
+      });
+    }
+
+    res.json({
+      success: true,
+      data: trip,
+      message: "Trip restored successfully"
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Eliminar trip permanentemente (solo admin)
+const permanentlyDeleteTrip = async (req, res, next) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Admin only."
+      });
+    }
+
+    const trip = await tripService.permanentlyDeleteTrip(req.params.id);
+    if (!trip) {
+      return res.status(404).json({
+        success: false,
+        message: "Trip not found"
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Trip permanently deleted"
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export default { 
   getAllTrips, 
   getMyTrips, 
@@ -377,5 +450,9 @@ export default {
   generateReport,
   getTripReports,
   servePDF,
-  cleanupOrphanedPDFs
+  cleanupOrphanedPDFs,
+  // Nuevos endpoints admin para eliminación lógica
+  getDeletedTrips,
+  restoreTrip,
+  permanentlyDeleteTrip
 };

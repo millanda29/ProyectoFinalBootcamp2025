@@ -8,7 +8,7 @@
       "header": "Authorization: Bearer <token>",
       "note": "Incluir token JWT en el header Authorization para rutas protegidas"
     },
-    "lastUpdated": "2025-09-05T16:00:00.000Z"
+    "lastUpdated": "2025-09-06T22:00:00.000Z"
   },
   "endpoints": {
     "auth": {
@@ -123,6 +123,38 @@
               }
             }
           }
+        },
+        "changePasswordAuth": {
+          "method": "PUT",
+          "path": "/api/auth/change-password",
+          "description": "Cambiar contraseña del usuario autenticado",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer <token>",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "currentPassword": "password123",
+              "newPassword": "newPassword456"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Contraseña actualizada exitosamente"
+              }
+            },
+            "error": {
+              "status": 400,
+              "body": {
+                "success": false,
+                "message": "La contraseña actual es incorrecta"
+              }
+            }
+          }
         }
       }
     },
@@ -220,11 +252,16 @@
         "deleteAccount": {
           "method": "DELETE",
           "path": "/api/users/me",
-          "description": "Eliminar cuenta de usuario",
+          "description": "Eliminar cuenta de usuario (eliminación lógica)",
           "authentication": true,
+          "note": "Ahora utiliza eliminación lógica en lugar de física",
           "request": {
             "headers": {
-              "Authorization": "Bearer <token>"
+              "Authorization": "Bearer <token>",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "password": "password123"
             }
           },
           "response": {
@@ -278,7 +315,7 @@
         },
         "getAllUsers": {
           "method": "GET",
-          "path": "/api/users",
+          "path": "/api/users/admin/all",
           "description": "Obtener todos los usuarios (solo admin)",
           "authentication": true,
           "adminOnly": true,
@@ -289,7 +326,7 @@
             "query": {
               "page": "1",
               "limit": "10",
-              "role": "traveler|admin"
+              "search": "texto de búsqueda"
             }
           },
           "response": {
@@ -302,9 +339,9 @@
                     "id": "68b9beef3aa2d4cd89785c36",
                     "email": "usuario@example.com",
                     "fullName": "Juan Pérez",
-                    "role": "traveler",
-                    "memberSince": "2025-01-15T00:00:00.000Z",
-                    "isActive": true
+                    "roles": ["traveler"],
+                    "isActive": true,
+                    "createdAt": "2025-01-15T00:00:00.000Z"
                   }
                 ],
                 "pagination": {
@@ -313,6 +350,349 @@
                   "totalUsers": 47,
                   "hasNext": true,
                   "hasPrev": false
+                }
+              }
+            }
+          }
+        },
+        "getFullProfile": {
+          "method": "GET",
+          "path": "/api/users/me/full",
+          "description": "Obtener perfil completo con estadísticas",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer <token>"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "id": "68b9beef3aa2d4cd89785c36",
+                  "email": "usuario@example.com",
+                  "fullName": "Juan Pérez",
+                  "travelPreferences": {
+                    "preferredCurrency": "USD",
+                    "preferredLanguage": "es",
+                    "travelStyle": "adventure"
+                  },
+                  "stats": {
+                    "tripsCompleted": 5,
+                    "countriesVisited": ["España", "Francia", "Japón"],
+                    "totalSpent": 15000,
+                    "totalSaved": 2500
+                  }
+                }
+              }
+            }
+          }
+        },
+        "updateTravelPreferences": {
+          "method": "PUT",
+          "path": "/api/users/me/preferences",
+          "description": "Actualizar preferencias de viaje",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer <token>",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "preferredCurrency": "EUR",
+              "preferredLanguage": "en",
+              "travelStyle": "luxury",
+              "accommodationPreference": "hotel"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "preferredCurrency": "EUR",
+                  "preferredLanguage": "en",
+                  "travelStyle": "luxury"
+                },
+                "message": "Preferencias de viaje actualizadas correctamente"
+              }
+            }
+          }
+        },
+        "updateNotifications": {
+          "method": "PUT",
+          "path": "/api/users/me/notifications",
+          "description": "Actualizar configuración de notificaciones",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer <token>",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "email": true,
+              "push": false,
+              "tripReminders": true,
+              "promotions": false
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "email": true,
+                  "push": false,
+                  "tripReminders": true,
+                  "promotions": false
+                },
+                "message": "Configuración de notificaciones actualizada correctamente"
+              }
+            }
+          }
+        },
+        "updateStats": {
+          "method": "PUT",
+          "path": "/api/users/me/stats",
+          "description": "Actualizar estadísticas de usuario",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer <token>",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "tripCost": 1500,
+              "country": "Italia"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "tripsCompleted": 6,
+                  "countriesVisited": ["España", "Francia", "Japón", "Italia"],
+                  "totalSpent": 16500
+                },
+                "message": "Estadísticas actualizadas correctamente"
+              }
+            }
+          }
+        },
+        "findSimilarUsers": {
+          "method": "GET",
+          "path": "/api/users/similar",
+          "description": "Buscar usuarios con preferencias similares",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer <token>"
+            },
+            "query": {
+              "travelStyle": "adventure",
+              "preferredCurrency": "USD"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": [
+                  {
+                    "id": "68b9beef3aa2d4cd89785c37",
+                    "fullName": "María García",
+                    "location": "Barcelona, España",
+                    "travelStyle": "adventure",
+                    "similarityScore": 0.85
+                  }
+                ],
+                "count": 1
+              }
+            }
+          }
+        },
+        "createUser": {
+          "method": "POST",
+          "path": "/api/users/admin/create",
+          "description": "Crear nuevo usuario (solo admin)",
+          "authentication": true,
+          "adminOnly": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer <admin_token>",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "email": "nuevo@example.com",
+              "password": "password123",
+              "fullName": "Usuario Nuevo",
+              "roles": ["traveler"]
+            }
+          },
+          "response": {
+            "success": {
+              "status": 201,
+              "body": {
+                "success": true,
+                "data": {
+                  "id": "68b9beef3aa2d4cd89785c99",
+                  "email": "nuevo@example.com",
+                  "fullName": "Usuario Nuevo",
+                  "roles": ["traveler"]
+                },
+                "message": "Usuario creado correctamente"
+              }
+            }
+          }
+        },
+        "getUserById": {
+          "method": "GET",
+          "path": "/api/users/admin/:id",
+          "description": "Obtener usuario por ID (solo admin)",
+          "authentication": true,
+          "adminOnly": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer <admin_token>"
+            },
+            "params": {
+              "id": "68b9beef3aa2d4cd89785c36"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "id": "68b9beef3aa2d4cd89785c36",
+                  "email": "usuario@example.com",
+                  "fullName": "Juan Pérez",
+                  "roles": ["traveler"],
+                  "isActive": true
+                }
+              }
+            }
+          }
+        },
+        "updateUser": {
+          "method": "PUT",
+          "path": "/api/users/admin/:id",
+          "description": "Actualizar usuario (solo admin)",
+          "authentication": true,
+          "adminOnly": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer <admin_token>",
+              "Content-Type": "application/json"
+            },
+            "params": {
+              "id": "68b9beef3aa2d4cd89785c36"
+            },
+            "body": {
+              "fullName": "Juan Pérez Actualizado",
+              "roles": ["traveler", "premium"],
+              "isActive": false
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "id": "68b9beef3aa2d4cd89785c36",
+                  "fullName": "Juan Pérez Actualizado",
+                  "roles": ["traveler", "premium"]
+                },
+                "message": "Usuario actualizado correctamente"
+              }
+            }
+          }
+        },
+        "deleteUser": {
+          "method": "DELETE",
+          "path": "/api/users/admin/:id",
+          "description": "Eliminar usuario (eliminación lógica, solo admin)",
+          "authentication": true,
+          "adminOnly": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer <admin_token>"
+            },
+            "params": {
+              "id": "68b9beef3aa2d4cd89785c36"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Usuario y sus viajes marcados como eliminados correctamente."
+              }
+            }
+          }
+        },
+        "resetPassword": {
+          "method": "PUT",
+          "path": "/api/users/admin/:id/reset-password",
+          "description": "Resetear contraseña de usuario (solo admin)",
+          "authentication": true,
+          "adminOnly": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer <admin_token>",
+              "Content-Type": "application/json"
+            },
+            "params": {
+              "id": "68b9beef3aa2d4cd89785c36"
+            },
+            "body": {
+              "newPassword": "nuevaPassword123"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Contraseña reseteada correctamente."
+              }
+            }
+          }
+        },
+        "getStats": {
+          "method": "GET",
+          "path": "/api/users/admin/stats",
+          "description": "Obtener estadísticas de usuarios (solo admin)",
+          "authentication": true,
+          "adminOnly": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer <admin_token>"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "totalUsers": 47,
+                  "activeUsers": 42,
+                  "newUsersThisMonth": 8,
+                  "usersByRole": {
+                    "traveler": 45,
+                    "admin": 2
+                  }
                 }
               }
             }
@@ -416,16 +796,41 @@
         "deleteAccountImmediate": {
           "method": "DELETE",
           "path": "/api/users/me",
-          "description": "Eliminar cuenta inmediatamente",
+          "description": "Eliminar cuenta inmediatamente (eliminación lógica)",
           "authentication": true,
+          "note": "Ahora utiliza eliminación lógica en lugar de física",
           "request": {
             "headers": {
               "Authorization": "Bearer <token>",
               "Content-Type": "application/json"
             },
             "body": {
-              "password": "password123",
-              "confirmDeletion": true
+              "password": "password123"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 204,
+              "body": null
+            },
+            "error": {
+              "status": 400,
+              "body": {
+                "success": false,
+                "message": "Contraseña incorrecta"
+              }
+            }
+          }
+        },
+        "getDeletedUsers": {
+          "method": "GET",
+          "path": "/api/users/admin/deleted",
+          "description": "Obtener usuarios eliminados (solo admin)",
+          "authentication": true,
+          "adminOnly": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer <admin_token>"
             }
           },
           "response": {
@@ -433,14 +838,71 @@
               "status": 200,
               "body": {
                 "success": true,
-                "message": "Cuenta eliminada exitosamente"
+                "data": [
+                  {
+                    "id": "68b64f17f1a0cf46346a444c",
+                    "email": "usuario@example.com",
+                    "fullName": "Usuario Eliminado",
+                    "isDeleted": true,
+                    "deletedAt": "2025-09-05T10:30:00.000Z",
+                    "deletedBy": "68b64f17f1a0cf46346a555d"
+                  }
+                ],
+                "count": 1
               }
+            }
+          }
+        },
+        "restoreUser": {
+          "method": "POST",
+          "path": "/api/users/admin/:id/restore",
+          "description": "Restaurar usuario eliminado (solo admin)",
+          "authentication": true,
+          "adminOnly": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer <admin_token>"
             },
-            "error": {
-              "status": 400,
+            "params": {
+              "id": "68b64f17f1a0cf46346a444c"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
               "body": {
-                "success": false,
-                "message": "Contraseña incorrecta"
+                "success": true,
+                "data": {
+                  "id": "68b64f17f1a0cf46346a444c",
+                  "email": "usuario@example.com",
+                  "fullName": "Usuario Restaurado",
+                  "isDeleted": false
+                },
+                "message": "Usuario restaurado correctamente."
+              }
+            }
+          }
+        },
+        "permanentlyDeleteUser": {
+          "method": "DELETE",
+          "path": "/api/users/admin/:id/permanent",
+          "description": "Eliminar usuario permanentemente (solo admin)",
+          "authentication": true,
+          "adminOnly": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer <admin_token>"
+            },
+            "params": {
+              "id": "68b64f17f1a0cf46346a444c"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Usuario eliminado permanentemente."
               }
             }
           }
@@ -613,8 +1075,9 @@
         "deleteTrip": {
           "method": "DELETE",
           "path": "/api/trips/:id",
-          "description": "Eliminar viaje (incluye limpieza automática de PDFs)",
+          "description": "Eliminar viaje (eliminación lógica)",
           "authentication": true,
+          "note": "Ahora utiliza eliminación lógica en lugar de física. Los PDFs se mantienen para posible restauración.",
           "request": {
             "headers": {
               "Authorization": "Bearer <token>"
@@ -890,6 +1353,92 @@
               }
             }
           }
+        },
+        "getDeletedTrips": {
+          "method": "GET",
+          "path": "/api/trips/deleted",
+          "description": "Obtener viajes eliminados (solo admin)",
+          "authentication": true,
+          "adminOnly": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer <admin_token>"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": [
+                  {
+                    "id": "68b64f17f1a0cf46346a444c",
+                    "userId": "68b9beef3aa2d4cd89785c36",
+                    "title": "Aventura Eliminada",
+                    "destination": "Tokio, Japón",
+                    "isDeleted": true,
+                    "deletedAt": "2025-09-05T10:30:00.000Z",
+                    "deletedBy": "68b64f17f1a0cf46346a555d"
+                  }
+                ],
+                "count": 1
+              }
+            }
+          }
+        },
+        "restoreTrip": {
+          "method": "POST",
+          "path": "/api/trips/:id/restore",
+          "description": "Restaurar viaje eliminado (solo admin)",
+          "authentication": true,
+          "adminOnly": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer <admin_token>"
+            },
+            "params": {
+              "id": "68b64f17f1a0cf46346a444c"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "id": "68b64f17f1a0cf46346a444c",
+                  "title": "Aventura Restaurada",
+                  "destination": "Tokio, Japón",
+                  "isDeleted": false
+                },
+                "message": "Trip restored successfully"
+              }
+            }
+          }
+        },
+        "permanentlyDeleteTrip": {
+          "method": "DELETE",
+          "path": "/api/trips/:id/permanent",
+          "description": "Eliminar viaje permanentemente (solo admin)",
+          "authentication": true,
+          "adminOnly": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer <admin_token>"
+            },
+            "params": {
+              "id": "68b64f17f1a0cf46346a444c"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Trip permanently deleted"
+              }
+            }
+          }
         }
       }
     },
@@ -959,6 +1508,58 @@
             }
           }
         },
+        "generateTripItinerary": {
+          "method": "POST",
+          "path": "/api/chat/trip/:tripId/itinerary",
+          "description": "Generar itinerario para un viaje específico",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer <token>",
+              "Content-Type": "application/json"
+            },
+            "params": {
+              "tripId": "68b64f17f1a0cf46346a444c"
+            },
+            "body": {
+              "interests": ["historia", "naturaleza"],
+              "budget": 1500,
+              "travelStyle": "cultural"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "data": {
+                  "tripId": "68b64f17f1a0cf46346a444c",
+                  "itinerary": [
+                    {
+                      "dayNumber": 1,
+                      "notes": "Día de llegada",
+                      "activities": [
+                        {
+                          "time": "10:00",
+                          "activity": "Check-in al hotel",
+                          "location": "Hotel centro"
+                        }
+                      ]
+                    }
+                  ],
+                  "estimatedCosts": [
+                    {
+                      "type": "accommodation",
+                      "amount": 100,
+                      "currency": "USD"
+                    }
+                  ]
+                },
+                "message": "Itinerario generado para el viaje"
+              }
+            }
+          }
+        },
         "chatAssistant": {
           "method": "POST",
           "path": "/api/chat/assistant",
@@ -1000,22 +1601,51 @@
         "id": "string - ID único del usuario",
         "email": "string - Email único",
         "fullName": "string - Nombre completo",
-        "avatarUrl": "string - URL del avatar (opcional)",
-        "bio": "string - Biografía (opcional)",
-        "role": "string - Rol del usuario (traveler|admin)",
-        "preferences": {
-          "currency": "string - Moneda preferida",
-          "language": "string - Idioma preferido",
-          "notifications": "boolean - Recibir notificaciones"
-        },
+        "passwordHash": "string - Hash de la contraseña (no devuelto en respuestas)",
+        "phone": "string - Teléfono (opcional)",
+        "location": "string - Ciudad, País (opcional)",
+        "bio": "string - Biografía (opcional, máx 500 chars)",
+        "website": "string - URL del sitio web (opcional)",
+        "avatarUrl": "string - URL del avatar",
+        "roles": "Array[string] - Roles del usuario (default: ['traveler'])",
+        "isActive": "boolean - Usuario activo",
+        "lastLogin": "Date - Última fecha de login",
+        "loginAttempts": "number - Intentos de login fallidos",
         "travelPreferences": {
-          "preferredCurrency": "string - Moneda para viajes",
-          "preferredLanguage": "string - Idioma para viajes",
-          "budgetRange": "string - Rango de presupuesto (low|medium|high|luxury)",
-          "travelStyle": "string - Estilo de viaje (adventure|relaxation|cultural|business)",
-          "accommodationType": "string - Tipo de alojamiento (hotel|hostel|resort|apartment)"
+          "preferredCurrency": "string - Moneda preferida (USD, EUR, etc.)",
+          "preferredLanguage": "string - Idioma preferido (en, es, fr, etc.)",
+          "travelStyle": "string - Estilo de viaje (budget, balanced, luxury, adventure, cultural, relaxation, business)",
+          "favoriteDestination": "string - Destino favorito",
+          "budgetRange": {
+            "min": "number - Presupuesto mínimo",
+            "max": "number - Presupuesto máximo",
+            "currency": "string - Moneda del presupuesto"
+          },
+          "accommodationPreference": "string - Tipo de alojamiento preferido",
+          "transportPreference": "string - Medio de transporte preferido"
         },
-        "memberSince": "Date - Fecha de registro",
+        "notifications": {
+          "email": "boolean - Notificaciones por email",
+          "push": "boolean - Notificaciones push",
+          "tripReminders": "boolean - Recordatorios de viajes",
+          "promotions": "boolean - Promociones"
+        },
+        "createdTrips": "Array[ObjectId] - IDs de viajes creados",
+        "stats": {
+          "tripsCompleted": "number - Viajes completados",
+          "countriesVisited": "Array[string] - Países visitados",
+          "totalSpent": "number - Total gastado",
+          "totalSaved": "number - Total ahorrado"
+        },
+        "deletionScheduled": {
+          "isScheduled": "boolean - Eliminación programada",
+          "scheduledDate": "Date - Fecha programada para eliminación",
+          "requestedAt": "Date - Fecha de solicitud",
+          "reason": "string - Razón de eliminación"
+        },
+        "isDeleted": "boolean - Marca de eliminación lógica",
+        "deletedAt": "Date - Fecha de eliminación lógica",
+        "deletedBy": "ObjectId - Usuario que realizó la eliminación",
         "createdAt": "Date - Fecha de creación",
         "updatedAt": "Date - Fecha de actualización"
       }
@@ -1024,19 +1654,51 @@
       "description": "Modelo de viaje",
       "fields": {
         "id": "string - ID único del viaje",
-        "userId": "string - ID del usuario propietario",
+        "userId": "ObjectId - ID del usuario propietario",
         "title": "string - Título del viaje",
         "destination": "string - Destino del viaje",
         "description": "string - Descripción (opcional)",
         "startDate": "Date - Fecha de inicio",
         "endDate": "Date - Fecha de fin",
-        "partySize": "number - Número de personas",
-        "status": "string - Estado (planned|active|completed|cancelled)",
-        "itinerary": "Array - Lista de días del itinerario",
-        "costs": "Array - Lista de costos",
-        "aiConversations": "Array - Conversaciones con IA",
-        "reports": "Array - Reportes generados",
-        "totalBudget": "number - Presupuesto total calculado",
+        "partySize": "number - Número de personas (min: 1)",
+        "status": "string - Estado (planned|ongoing|completed)",
+        "itinerary": {
+          "description": "Array - Lista de días del itinerario",
+          "structure": {
+            "dayNumber": "number - Número del día",
+            "notes": "string - Notas del día",
+            "activities": "Array - Actividades del día"
+          }
+        },
+        "costs": {
+          "description": "Array - Lista de costos",
+          "structure": {
+            "type": "string - Tipo de costo (lodging|transport|activity|other)",
+            "label": "string - Etiqueta descriptiva",
+            "currency": "string - Moneda (default: USD)",
+            "amount": "number - Monto",
+            "quantity": "number - Cantidad (default: 1)"
+          }
+        },
+        "aiConversations": {
+          "description": "Array - Conversaciones con IA",
+          "structure": {
+            "startedAt": "Date - Fecha de inicio",
+            "messages": "Array - Mensajes de la conversación"
+          }
+        },
+        "reports": {
+          "description": "Array - Reportes generados",
+          "structure": {
+            "fileUrl": "string - URL del archivo",
+            "format": "string - Formato (default: pdf)",
+            "generatedAt": "Date - Fecha de generación"
+          }
+        },
+        "totalBudget": "number - Presupuesto total calculado (virtual)",
+        "isDeleted": "boolean - Marca de eliminación lógica",
+        "deletedAt": "Date - Fecha de eliminación lógica",
+        "deletedBy": "ObjectId - Usuario que realizó la eliminación",
         "createdAt": "Date - Fecha de creación",
         "updatedAt": "Date - Fecha de actualización"
       }
@@ -1057,9 +1719,15 @@
     "refreshToken": "Los tokens de acceso expiran en 1 hora",
     "adminRole": "Los endpoints marcados como 'adminOnly' requieren rol de administrador",
     "pagination": "Los endpoints que devuelven listas incluyen información de paginación",
+    "softDelete": "El sistema usa eliminación lógica - los elementos se marcan como eliminados pero se conservan en la base de datos",
+    "deletedFiltering": "Las consultas normales filtran automáticamente elementos eliminados",
+    "adminManagement": "Los administradores pueden ver, restaurar y eliminar permanentemente elementos eliminados",
     "pdfGeneration": "Los PDFs se generan con Puppeteer y se almacenan en /reports",
-    "pdfCleanup": "Al eliminar un viaje, se eliminan automáticamente todos los archivos PDF asociados",
+    "pdfPreservation": "Con eliminación lógica, los PDFs se conservan para posible restauración",
     "aiIntegration": "Los endpoints de chat utilizan OpenAI GPT-4o-mini",
-    "security": "Se validan permisos para asegurar que solo los propietarios accedan a sus recursos"
+    "security": "Se validan permisos para asegurar que solo los propietarios accedan a sus recursos",
+    "userPreferences": "Sistema completo de preferencias de viaje y notificaciones",
+    "statistics": "Seguimiento de estadísticas de usuario (viajes, países, gastos)",
+    "scheduledDeletion": "Los usuarios pueden programar eliminación de cuenta con 31 días de gracia"
   }
 }

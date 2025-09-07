@@ -54,7 +54,12 @@ const tripSchema = new mongoose.Schema({
     startedAt: { type: Date, default: () => new Date() },
     messages: [AiMessageSchema]
   }],
-  reports: [ReportSchema]
+  reports: [ReportSchema],
+  
+  // Campos para eliminación lógica
+  isDeleted: { type: Boolean, default: false, index: true },
+  deletedAt: { type: Date },
+  deletedBy: { type: mongoose.Types.ObjectId, ref: "User" }
 }, { timestamps: true });
 
 // Validación de fechas
@@ -64,6 +69,32 @@ tripSchema.pre('save', function(next) {
   }
   next();
 });
+
+// Middleware para filtrar elementos eliminados en todas las consultas find
+tripSchema.pre(/^find/, function() {
+  // Solo aplicar el filtro si no se ha especificado explícitamente incluir eliminados
+  if (!this.getOptions().includeDeleted) {
+    this.where({ isDeleted: { $ne: true } });
+  }
+});
+
+// Método para eliminación lógica
+tripSchema.methods.softDelete = function(deletedBy = null) {
+  this.isDeleted = true;
+  this.deletedAt = new Date();
+  if (deletedBy) {
+    this.deletedBy = deletedBy;
+  }
+  return this.save();
+};
+
+// Método para restaurar elemento eliminado
+tripSchema.methods.restore = function() {
+  this.isDeleted = false;
+  this.deletedAt = null;
+  this.deletedBy = null;
+  return this.save();
+};
 
 // Método virtual para calcular presupuesto total
 tripSchema.virtual('totalBudget').get(function() {
