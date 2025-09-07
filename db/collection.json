@@ -1,0 +1,87 @@
+[{
+  "_id": "64fa1c2e5f1d3a1234567890",
+  "email": "alice@example.com",
+  "passwordHash": "$2b$10$abc...",
+  "fullName": "Alice Johnson",
+  "avatarUrl": "https://cdn/avatars/1.png",
+  "roles": ["traveler"],
+  "isActive": true,
+  "createdAt": "2025-09-01T10:30:00Z",
+  "updatedAt": "2025-09-01T10:30:00Z"
+},
+{
+  "_id": "64fa1d4f6a2b9c9876543210",
+  "userId": "64fa1c2e5f1d3a1234567890",
+  "title": "Paris Getaway",
+  "destination": "Paris, France",
+  "startDate": "2025-10-10T00:00:00Z",
+  "endDate": "2025-10-15T00:00:00Z",
+  "partySize": 2,
+  "itinerary": [
+    {
+      "dayNumber": 1,
+      "notes": "Visit Eiffel Tower",
+      "activities": [
+        {
+          "_id": "64fa1f6789abcd1234567890",
+          "title": "Eiffel Tower Tour",
+          "category": "sightseeing",
+          "startTime": "10:00",
+          "endTime": "12:00",
+          "location": "Champ de Mars",
+          "externalRef": "ext-123"
+        }
+      ]
+    }
+  ],
+  "costs": [
+    {
+      "_id": "64fa1f98765cba1234567890",
+      "type": "lodging",
+      "label": "Hotel 5 nights",
+      "currency": "EUR",
+      "amount": 800,
+      "quantity": 1
+    }
+  ],
+  "aiConversations": [
+    {
+      "_id": "64fa20981234567890abcd12",
+      "startedAt": "2025-09-01T11:00:00Z",
+      "messages": [
+        {
+          "_id": "64fa20aa9876543210abcd12",
+          "role": "user",
+          "content": "Plan a trip to Paris",
+          "createdAt": "2025-09-01T11:01:00Z"
+        },
+        {
+          "_id": "64fa20bb1234567890abcd34",
+          "role": "assistant",
+          "content": "Here’s a 5-day itinerary...",
+          "createdAt": "2025-09-01T11:01:10Z"
+        }
+      ]
+    }
+  ],
+  "reports": [
+    {
+      "_id": "64fa21cd0987654321abcd90",
+      "fileUrl": "https://cdn.example.com/reports/paris_trip.pdf",
+      "format": "pdf",
+      "generatedAt": "2025-09-01T12:00:00Z"
+    }
+  ],
+  "createdAt": "2025-09-01T10:35:00Z",
+  "updatedAt": "2025-09-01T10:35:00Z"
+},
+{
+  "_id": "64fa2309876543210abcd123",
+  "userId": "64fa1c2e5f1d3a1234567890",
+  "tokenHash": "$2b$10$xyz...",
+  "expiresAt": "2025-09-08T10:00:00Z",
+  "revokedAt": null,
+  "createdAt": "2025-09-01T10:40:00Z",
+  "updatedAt": "2025-09-01T10:40:00Z"
+}
+]
