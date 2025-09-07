@@ -2,46 +2,67 @@
 
 API backend para TravelMate, una plataforma web con chatbot de IA para planificación de viajes que sugiere itinerarios, calcula presupuestos y genera reportes personalizados.
 
-## � Tecnologías Utilizadas
+## 🔧 Tecnologías Utilizadas
 
-- **Node.js** con Express.js
-- **MongoDB** con Mongoose
-- **OpenAI API** para el chatbot inteligente
-- **JWT** para autenticación
+- **Node.js v16+** con Express.js
+- **MongoDB** con Mongoose ODM
+- **OpenAI API (GPT-4o-mini)** para el chatbot inteligente
+- **JWT** para autenticación y autorización
 - **Puppeteer** para generación de PDFs
-- **Winston** para logging
-- **Bcrypt** para hashing de contraseñas
+- **Winston** para logging avanzado
+- **Bcrypt** para hashing seguro de contraseñas
+- **Node-cron** para tareas programadas
+- **Express-list-endpoints** para documentación automática
 
 ## 📋 Funcionalidades Implementadas
 
-### ✅ Sprint 1 & 2: Autenticación y Gestión de Usuarios
-- ✅ Registro y login de usuarios
-- ✅ Autenticación JWT con refresh tokens
-- ✅ Gestión de perfiles de usuario
+### ✅ Sistema de Autenticación y Seguridad
+- ✅ Registro y login de usuarios con validación
+- ✅ Autenticación JWT con refresh tokens seguros
+- ✅ Middleware de autorización basado en roles
+- ✅ Hashing de contraseñas con salt rounds
+- ✅ Protección CORS configurada
+- ✅ Manejo centralizado de errores
+
+### ✅ Gestión Avanzada de Usuarios
 - ✅ Panel de administración completo (CRUD usuarios)
-- ✅ Roles de usuario (admin/traveler)
-- ✅ Historial de viajes por usuario
+- ✅ Roles de usuario (admin/traveler) con permisos diferenciados
+- ✅ **Eliminación lógica** con campos isDeleted, deletedAt, deletedBy
+- ✅ Restauración de usuarios eliminados (admin only)
+- ✅ Eliminación permanente (admin only)
+- ✅ Gestión de perfiles y cambio de contraseñas
+- ✅ Estadísticas de usuarios del sistema
 
-### ✅ Sprint 3: ChatBot IA y Gestión de Viajes
-- ✅ Integración con OpenAI para generación de itinerarios
-- ✅ Chat interactivo con contexto de viaje
-- ✅ CRUD completo de trips/viajes
-- ✅ Generación automática de itinerarios con IA
-- ✅ Gestión de actividades por día
+### ✅ ChatBot IA Avanzado y Gestión de Viajes
+- ✅ Integración con OpenAI GPT-4o-mini
+- ✅ Generación inteligente de itinerarios personalizados
+- ✅ Chat interactivo con contexto de viaje persistente
+- ✅ CRUD completo de trips/viajes con eliminación lógica
+- ✅ Gestión de actividades categorizadas por día
+- ✅ Administración de viajes eliminados (restaurar/eliminar permanente)
 
-### ✅ Sprint 4: Presupuestos y Reportes
-- ✅ Sistema de cálculo de costos (alojamiento, transporte, actividades)
-- ✅ Generación de reportes PDF descargables
-- ✅ Estimaciones de presupuesto con IA
-- ✅ Exportación de itinerarios completos
+### ✅ Sistema de Presupuestos y Reportes
+- ✅ Cálculo detallado de costos (alojamiento, transporte, actividades)
+- ✅ Generación de reportes PDF con Puppeteer
+- ✅ Estimaciones automáticas de presupuesto con IA
+- ✅ Exportación completa de itinerarios
+- ✅ Almacenamiento persistente de reportes generados
+
+### ✅ Funciones Administrativas Avanzadas
+- ✅ Panel de control administrativo completo
+- ✅ Gestión de usuarios eliminados y restauración
+- ✅ Eliminación permanente de datos (irreversible)
+- ✅ Estadísticas del sistema en tiempo real
+- ✅ Supervisión de todos los viajes del sistema
 
 ## 🛠️ Instalación y Configuración
 
 ### Prerrequisitos
 ```bash
 - Node.js (v16 o superior)
-- MongoDB
+- MongoDB (local o Atlas)
 - NPM o Yarn
+- Cuenta de OpenAI con API Key
 ```
 
 ### Instalación
@@ -61,23 +82,23 @@ cp .env.example .env
 ```env
 PORT=3000
 MONGODB_URI=mongodb://localhost:27017/travelmate
-JWT_SECRET=your-super-secret-jwt-key
-JWT_REFRESH_SECRET=your-refresh-secret-key
-OPENAI_API_KEY=your-openai-api-key
+JWT_SECRET=your-super-secret-jwt-key-with-at-least-32-characters
+JWT_REFRESH_SECRET=your-refresh-secret-key-with-at-least-32-characters
+OPENAI_API_KEY=sk-your-openai-api-key-here
 CORS_ORIGIN=http://localhost:5173
 NODE_ENV=development
 ```
 
 ### Ejecutar la aplicación
 ```bash
-# Desarrollo
+# Desarrollo con recarga automática
 npm run dev
 
 # Producción
 npm start
 ```
 
-## 📚 API Endpoints
+## 📚 API Endpoints Completos
 
 ### 🔐 Autenticación (`/api/auth`)
 
@@ -85,57 +106,66 @@ npm start
 |--------|----------|-------------|---------------|
 | POST | `/register` | Registrar nuevo usuario | ❌ |
 | POST | `/login` | Iniciar sesión | ❌ |
-| POST | `/refresh` | Renovar token | ❌ |
-| POST | `/logout` | Cerrar sesión | ❌ |
+| POST | `/refresh` | Renovar token de acceso | ❌ |
+| POST | `/logout` | Cerrar sesión (invalidar refresh token) | ❌ |
+| PUT | `/change-password` | Cambiar contraseña con token | ✅ |
 
 ### 👤 Usuarios (`/api/users`)
 
+#### Endpoints de Usuario Regular
 | Método | Endpoint | Descripción | Autenticación |
 |--------|----------|-------------|---------------|
 | GET | `/me` | Obtener perfil propio | ✅ |
 | PUT | `/me` | Actualizar perfil propio | ✅ |
-| GET | `/me/trips` | Historial de viajes | ✅ |
-| PUT | `/me/change-password` | Cambiar contraseña | ✅ |
+| GET | `/me/trips` | Historial de viajes propios | ✅ |
+| DELETE | `/me` | Eliminar cuenta propia (lógico) | ✅ |
 
-#### Admin Only
+#### Endpoints de Administrador
 | Método | Endpoint | Descripción | Rol |
 |--------|----------|-------------|-----|
 | GET | `/admin/stats` | Estadísticas del sistema | Admin |
-| GET | `/admin/all` | Listar todos los usuarios | Admin |
-| POST | `/admin/create` | Crear usuario | Admin |
+| GET | `/admin/all` | Listar todos los usuarios activos | Admin |
+| POST | `/admin/create` | Crear nuevo usuario | Admin |
 | GET | `/admin/:id` | Obtener usuario por ID | Admin |
-| PUT | `/admin/:id` | Actualizar usuario | Admin |
-| DELETE | `/admin/:id` | Eliminar usuario | Admin |
-| PUT | `/admin/:id/reset-password` | Resetear contraseña | Admin |
+| PUT | `/admin/:id` | Actualizar usuario específico | Admin |
+| DELETE | `/admin/:id` | Eliminar usuario (lógico) | Admin |
+| PUT | `/admin/:id/reset-password` | Resetear contraseña de usuario | Admin |
+| GET | `/admin/deleted` | Listar usuarios eliminados | Admin |
+| PUT | `/admin/:id/restore` | Restaurar usuario eliminado | Admin |
+| DELETE | `/admin/:id/permanent` | Eliminar usuario permanentemente | Admin |
 
 ### 🧳 Viajes (`/api/trips`)
 
+#### Endpoints de Usuario Regular
 | Método | Endpoint | Descripción | Autenticación |
 |--------|----------|-------------|---------------|
-| GET | `/my` | Mis viajes | ✅ |
-| POST | `/` | Crear viaje | ✅ |
+| GET | `/my` | Mis viajes activos | ✅ |
+| POST | `/` | Crear nuevo viaje | ✅ |
 | GET | `/:id` | Obtener viaje por ID | ✅ |
 | PUT | `/:id` | Actualizar viaje | ✅ |
-| DELETE | `/:id` | Eliminar viaje | ✅ |
-| PUT | `/:id/costs` | Agregar costos | ✅ |
+| DELETE | `/:id` | Eliminar viaje (lógico) | ✅ |
+| PUT | `/:id/costs` | Agregar/actualizar costos | ✅ |
 | PUT | `/:id/itinerary` | Actualizar itinerario | ✅ |
 | POST | `/:id/report` | Generar reporte PDF | ✅ |
-| GET | `/:id/reports` | Listar reportes | ✅ |
+| GET | `/:id/reports` | Listar reportes del viaje | ✅ |
 
-#### Admin Only
+#### Endpoints de Administrador
 | Método | Endpoint | Descripción | Rol |
 |--------|----------|-------------|-----|
-| GET | `/` | Todos los viajes | Admin |
+| GET | `/` | Todos los viajes activos del sistema | Admin |
+| GET | `/deleted` | Todos los viajes eliminados | Admin |
+| PUT | `/:id/restore` | Restaurar viaje eliminado | Admin |
+| DELETE | `/:id/permanent` | Eliminar viaje permanentemente | Admin |
 
 ### 🤖 ChatBot IA (`/api/chat`)
 
 | Método | Endpoint | Descripción | Autenticación |
 |--------|----------|-------------|---------------|
-| POST | `/itinerary` | Generar itinerario básico | ✅ |
-| POST | `/trip/:tripId/itinerary` | Generar itinerario para trip | ✅ |
-| POST | `/assistant` | Chat con asistente | ✅ |
+| POST | `/itinerary` | Generar itinerario básico con IA | ✅ |
+| POST | `/trip/:tripId/itinerary` | Generar itinerario para trip específico | ✅ |
+| POST | `/assistant` | Chat con asistente de viajes | ✅ |
 
-## 📊 Modelos de Datos
+## 📊 Modelos de Datos Actualizados
 
 ### Usuario
 ```javascript
@@ -144,11 +174,29 @@ npm start
   passwordHash: String (requerido),
   fullName: String (requerido),
   avatarUrl: String,
+  dateOfBirth: Date,
+  location: String,
+  bio: String,
+  preferences: {
+    currency: String (default: 'USD'),
+    language: String (default: 'es'),
+    notifications: Boolean (default: true)
+  },
   roles: [String] (default: ['traveler']),
   isActive: Boolean (default: true),
   lastLogin: Date,
-  loginAttempts: Number,
+  loginAttempts: Number (default: 0),
   createdTrips: [ObjectId] (ref: Trip),
+  statistics: {
+    totalTrips: Number (default: 0),
+    totalDaysTravel: Number (default: 0),
+    totalSpent: Number (default: 0),
+    countriesVisited: [String]
+  },
+  // Campos de eliminación lógica
+  isDeleted: Boolean (default: false),
+  deletedAt: Date,
+  deletedBy: ObjectId (ref: User),
   timestamps: true
 }
 ```
@@ -162,11 +210,20 @@ npm start
   startDate: Date (requerido),
   endDate: Date (requerido),
   partySize: Number (default: 1),
-  status: String (enum: planned/ongoing/completed),
+  status: String (enum: planned/ongoing/completed, default: planned),
+  description: String,
+  estimatedBudget: Number,
+  actualBudget: Number,
+  currency: String (default: USD),
   itinerary: [DaySchema],
   costs: [CostSchema],
   aiConversations: [ConversationSchema],
   reports: [ReportSchema],
+  tags: [String],
+  // Campos de eliminación lógica
+  isDeleted: Boolean (default: false),
+  deletedAt: Date,
+  deletedBy: ObjectId (ref: User),
   timestamps: true
 }
 ```
@@ -177,6 +234,7 @@ npm start
 ```javascript
 {
   dayNumber: Number (requerido),
+  date: Date,
   notes: String,
   activities: [ActivitySchema]
 }
@@ -186,40 +244,103 @@ npm start
 ```javascript
 {
   title: String (requerido),
-  category: String,
+  description: String,
+  category: String (enum: sightseeing/restaurant/transport/lodging/entertainment/other),
   startTime: String,
   endTime: String,
   location: String,
-  externalRef: String
+  address: String,
+  cost: Number,
+  currency: String,
+  externalRef: String,
+  rating: Number (1-5),
+  notes: String
 }
 ```
 
 #### Cost (Costo)
 ```javascript
 {
-  type: String (enum: lodging/transport/activity/other),
+  type: String (enum: lodging/transport/activity/food/shopping/other),
   label: String (requerido),
+  description: String,
   currency: String (default: USD),
   amount: Number (requerido),
-  quantity: Number (default: 1)
+  quantity: Number (default: 1),
+  date: Date,
+  category: String,
+  isEstimated: Boolean (default: false)
 }
 ```
 
-## 🔧 Ejemplos de Uso
+#### Conversation (Conversación con IA)
+```javascript
+{
+  timestamp: Date (default: Date.now),
+  userMessage: String (requerido),
+  aiResponse: String (requerido),
+  context: String,
+  tokens: Number
+}
+```
 
-### Registro de Usuario
+#### Report (Reporte)
+```javascript
+{
+  fileName: String (requerido),
+  downloadUrl: String (requerido),
+  generatedAt: Date (default: Date.now),
+  fileSize: Number,
+  type: String (default: 'pdf')
+}
+```
+
+### RefreshToken
+```javascript
+{
+  token: String (único, requerido),
+  userId: ObjectId (ref: User, requerido),
+  expiresAt: Date (requerido),
+  isRevoked: Boolean (default: false),
+  createdAt: Date (default: Date.now)
+}
+```
+
+## 🔧 Ejemplos de Uso Detallados
+
+### Registro y Autenticación
 ```bash
+# Registro de usuario
 POST /api/auth/register
 Content-Type: application/json
 
 {
   "email": "user@example.com",
-  "password": "securePassword123",
-  "fullName": "Juan Pérez"
+  "password": "SecurePassword123!",
+  "fullName": "Juan Pérez",
+  "dateOfBirth": "1990-05-15",
+  "location": "Madrid, España"
+}
+
+# Respuesta
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "674a1b2c3d4e5f6789abcdef",
+      "email": "user@example.com",
+      "fullName": "Juan Pérez",
+      "roles": ["traveler"]
+    },
+    "tokens": {
+      "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
+    }
+  }
 }
 ```
 
-### Crear Viaje
+### Crear Viaje Completo
 ```bash
 POST /api/trips
 Authorization: Bearer <token>
@@ -230,14 +351,66 @@ Content-Type: application/json
   "destination": "París, Francia",
   "startDate": "2024-06-15",
   "endDate": "2024-06-20",
-  "partySize": 2
+  "partySize": 2,
+  "description": "Viaje romántico por París",
+  "estimatedBudget": 2500,
+  "currency": "EUR",
+  "tags": ["romantic", "culture", "gastronomy"]
 }
 ```
 
 ### Generar Itinerario con IA
 ```bash
-POST /api/chat/trip/60f7b3b4d1a2c3e4f5g6h7i8/itinerary
+POST /api/chat/trip/674a1b2c3d4e5f6789abcdef/itinerary
 Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "preferences": {
+    "interests": ["arte", "gastronomía", "historia"],
+    "budget": "medio",
+    "style": "cultural"
+  }
+}
+
+# Respuesta
+{
+  "success": true,
+  "data": {
+    "itinerary": [
+      {
+        "dayNumber": 1,
+        "date": "2024-06-15",
+        "activities": [
+          {
+            "title": "Visita a la Torre Eiffel",
+            "category": "sightseeing",
+            "startTime": "09:00",
+            "endTime": "11:00",
+            "location": "Torre Eiffel",
+            "cost": 25,
+            "currency": "EUR"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Administración de Usuarios Eliminados
+```bash
+# Listar usuarios eliminados (admin only)
+GET /api/users/admin/deleted
+Authorization: Bearer <admin-token>
+
+# Restaurar usuario eliminado
+PUT /api/users/admin/674a1b2c3d4e5f6789abcdef/restore
+Authorization: Bearer <admin-token>
+
+# Eliminar permanentemente
+DELETE /api/users/admin/674a1b2c3d4e5f6789abcdef/permanent
+Authorization: Bearer <admin-token>
 ```
 
 ### Agregar Costos
@@ -285,197 +458,251 @@ Response:
 
 ## 🧪 Características del ChatBot IA
 
-### Generación de Itinerarios
-- Sugerencias personalizadas basadas en destino y fechas
-- Actividades categorizadas por tipo
-- Horarios sugeridos para cada actividad
-- Estimación automática de costos
+### Generación Inteligente de Itinerarios
+- Sugerencias personalizadas basadas en destino, fechas y preferencias
+- Actividades categorizadas con horarios optimizados
+- Estimación automática y detallada de costos
+- Consideración de factores como clima, eventos locales y presupuesto
+- Integración con datos históricos de viajes anteriores
 
-### Chat Interactivo
-- Respuestas contextuales sobre el viaje
-- Sugerencias de modificaciones al itinerario
-- Consejos de viaje personalizados
-- Integración con datos del trip existente
+### Chat Interactivo Avanzado
+- Respuestas contextuales sobre el viaje específico
+- Sugerencias de modificaciones al itinerario en tiempo real
+- Consejos de viaje personalizados basados en el perfil del usuario
+- Capacidad de recordar conversaciones anteriores
+- Estimaciones de presupuesto dinámicas
 
-## 📈 Sistema de Roles y Permisos
+### Funciones de IA Específicas
+- Análisis de patrones de viaje del usuario
+- Recomendaciones basadas en historial y preferencias
+- Optimización de rutas y tiempos
+- Alertas de presupuesto y gastos
+- Sugerencias de actividades alternativas
+
+## 🛡️ Sistema de Eliminación Lógica
+
+### Funcionamiento
+- **Eliminación Lógica**: Los registros no se eliminan físicamente de la base de datos
+- **Campos de Control**: `isDeleted`, `deletedAt`, `deletedBy` en todos los modelos principales
+- **Filtrado Automático**: Middleware de Mongoose oculta automáticamente registros eliminados
+- **Trazabilidad**: Registro completo de quién y cuándo eliminó cada elemento
+
+### Beneficios
+- ✅ Recuperación de datos accidental
+- ✅ Auditoría completa de eliminaciones
+- ✅ Análisis histórico de datos
+- ✅ Cumplimiento de regulaciones de retención de datos
+- ✅ Funcionalidad de "papelera de reciclaje"
+
+### Administración de Datos Eliminados
+- **Solo Administradores** pueden ver datos eliminados
+- **Restauración** de usuarios y viajes con un clic
+- **Eliminación Permanente** para limpiar datos definitivamente
+- **Reportes** de elementos eliminados por fecha y usuario
+
+## 📈 Sistema de Roles y Permisos Avanzado
 
 ### Traveler (Usuario Regular)
-- ✅ Gestionar su propio perfil
-- ✅ Crear y administrar sus viajes
-- ✅ Usar el chatbot IA
-- ✅ Generar reportes de sus viajes
-- ❌ Ver otros usuarios o viajes
+- ✅ Gestión completa de su perfil personal
+- ✅ Crear, editar y eliminar sus propios viajes
+- ✅ Usar todas las funciones del chatbot IA
+- ✅ Generar y descargar reportes de sus viajes
+- ✅ Eliminar su propia cuenta (eliminación lógica)
+- ❌ Ver datos de otros usuarios
+- ❌ Funciones administrativas
 
 ### Admin (Administrador)
-- ✅ Todas las funciones de Traveler
-- ✅ Ver todos los usuarios y viajes
-- ✅ Crear, editar y eliminar usuarios
-- ✅ Resetear contraseñas
-- ✅ Ver estadísticas del sistema
+- ✅ **Todas las funciones de Traveler**
+- ✅ Ver y gestionar todos los usuarios del sistema
+- ✅ Ver y gestionar todos los viajes del sistema
+- ✅ Crear usuarios directamente
+- ✅ Resetear contraseñas de cualquier usuario
+- ✅ Ver estadísticas completas del sistema
+- ✅ **Gestionar datos eliminados** (ver, restaurar, eliminar permanente)
+- ✅ Acceso a funciones de auditoría y control
 
-## 🛡️ Seguridad
+## � Seguridad Implementada
 
-- Autenticación JWT con tokens de corta duración
-- Refresh tokens para renovación segura
-- Hashing de contraseñas con bcrypt
-- Validación de entrada en todos los endpoints
-- Autorización basada en roles
-- Protección CORS configurada
+### Autenticación
+- **JWT con tiempos de vida cortos** (15 minutos para access token)
+- **Refresh tokens seguros** con rotación automática
+- **Invalidación de tokens** en logout
+- **Protección contra ataques de fuerza bruta**
 
-## 📁 Estructura del Proyecto
+### Autorización
+- **Middleware de roles** granular
+- **Validación de propietario** para recursos personales
+- **Protección de endpoints administrativos**
+- **Verificación de permisos en tiempo real**
+
+### Datos
+- **Hashing de contraseñas** con bcrypt y salt rounds altos
+- **Validación de entrada** en todos los endpoints
+- **Sanitización de datos** antes de almacenamiento
+- **Protección CORS** configurada específicamente
+
+### Auditoría
+- **Logging completo** de todas las operaciones
+- **Registro de eliminaciones** con usuario y timestamp
+- **Trazabilidad de cambios** en datos críticos
+- **Monitoreo de intentos de acceso** fallidos
+
+## 📁 Estructura del Proyecto Actualizada
 
 ```
 server/
 ├── src/
-│   ├── auth/                 # Autenticación
-│   │   ├── authController.js
-│   │   ├── authMiddleware.js
-│   │   ├── authRouter.js
-│   │   └── authService.js
-│   ├── controllers/          # Controladores
-│   │   ├── chatController.js
-│   │   ├── tripController.js
-│   │   └── userController.js
-│   ├── middlewares/          # Middlewares
-│   │   ├── errorHandler.js
-│   │   └── isAdmin.js
-│   ├── models/              # Modelos de MongoDB
-│   │   ├── RefreshToken.js
-│   │   ├── Trip.js
-│   │   └── User.js
-│   ├── routers/             # Rutas
-│   │   ├── chatRouter.js
-│   │   ├── index.js
-│   │   ├── tripRouter.js
-│   │   └── userRouter.js
-│   ├── services/            # Servicios
-│   │   ├── chatService.js
-│   │   ├── reportService.js
-│   │   ├── tripService.js
-│   │   └── userService.js
-│   ├── utils/               # Utilidades
-│   │   ├── generateToken.js
-│   │   ├── hashPassword.js
-│   │   └── logger.js
-│   ├── app.js              # Configuración de Express
-│   └── seed.js             # Datos de prueba
-├── reports/                 # PDFs generados
-├── index.js                # Punto de entrada
-├── package.json
-└── README.md
+│   ├── auth/                     # Sistema de autenticación
+│   │   ├── authController.js     # Controlador de autenticación
+│   │   ├── authMiddleware.js     # Middleware JWT y autorización
+│   │   ├── authRouter.js         # Rutas de autenticación
+│   │   └── authService.js        # Lógica de negocio de auth
+│   ├── controllers/              # Controladores principales
+│   │   ├── chatController.js     # Control del chatbot IA
+│   │   ├── tripController.js     # Control de viajes
+│   │   └── userController.js     # Control de usuarios
+│   ├── middlewares/              # Middlewares personalizados
+│   │   ├── errorHandler.js       # Manejo centralizado de errores
+│   │   └── isAdmin.js            # Middleware de autorización admin
+│   ├── models/                   # Modelos de MongoDB
+│   │   ├── RefreshToken.js       # Modelo de refresh tokens
+│   │   ├── Trip.js               # Modelo de viajes con soft delete
+│   │   └── User.js               # Modelo de usuarios con soft delete
+│   ├── routers/                  # Definición de rutas
+│   │   ├── chatRouter.js         # Rutas del chatbot
+│   │   ├── index.js              # Router principal
+│   │   ├── tripRouter.js         # Rutas de viajes
+│   │   └── userRouter.js         # Rutas de usuarios
+│   ├── services/                 # Lógica de negocio
+│   │   ├── chatService.js        # Servicios del chatbot IA
+│   │   ├── reportService.js      # Generación de reportes PDF
+│   │   ├── tripService.js        # Servicios de viajes
+│   │   └── userService.js        # Servicios de usuarios
+│   ├── tasks/                    # Tareas programadas
+│   │   └── scheduledDeletions.js # Limpieza automática de datos
+│   ├── utils/                    # Utilidades
+│   │   ├── generateToken.js      # Generación de tokens JWT
+│   │   ├── hashPassword.js       # Hashing de contraseñas
+│   │   └── logger.js             # Configuración de Winston
+│   ├── app.js                    # Configuración de Express
+│   └── seed.js                   # Datos de prueba y inicialización
+├── reports/                      # PDFs generados (persistentes)
+├── api-endpoints.json            # Documentación completa de API
+├── ENDPOINTS-SUMMARY.md          # Resumen de endpoints
+├── index.js                      # Punto de entrada principal
+├── package.json                  # Dependencias y scripts
+└── README.md                     # Esta documentación
 ```
 
-## 🚀 Estado del Desarrollo
+## 🚀 Estado Actual del Desarrollo
 
 ### ✅ Completado (100%)
-- [x] Sistema de autenticación completo
-- [x] Gestión de usuarios y admin panel
-- [x] ChatBot IA con OpenAI
-- [x] CRUD completo de viajes
-- [x] Sistema de costos y presupuestos
-- [x] Generación de reportes PDF
-- [x] API RESTful completa
-- [x] Documentación de endpoints
+- [x] **Sistema de autenticación JWT completo** con refresh tokens
+- [x] **Gestión avanzada de usuarios** con roles y permisos
+- [x] **Eliminación lógica** implementada en todos los modelos
+- [x] **Panel de administración** completo con gestión de eliminados
+- [x] **ChatBot IA integrado** con OpenAI GPT-4o-mini
+- [x] **CRUD completo de viajes** con funciones avanzadas
+- [x] **Sistema de costos y presupuestos** detallado
+- [x] **Generación de reportes PDF** con Puppeteer
+- [x] **API RESTful** completamente documentada
+- [x] **Logging y manejo de errores** centralizado
+- [x] **Seguridad avanzada** con validaciones y protecciones
 
 ### 🎯 Criterios de Aceptación Cumplidos
-- ✅ El sistema genera itinerarios en menos de 5 segundos
-- ✅ El ChatBot responde en tiempo real
-- ✅ Los reportes se guardan en la cuenta del usuario
-- ✅ Arquitectura MERN Stack implementada
-- ✅ Roles diferenciados funcionando
-- ✅ Validaciones de seguridad implementadas
+- ✅ El sistema genera itinerarios IA en menos de 5 segundos
+- ✅ El ChatBot responde con contexto en tiempo real
+- ✅ Los reportes se generan y almacenan correctamente
+- ✅ Arquitectura MERN Stack completamente implementada
+- ✅ Roles y permisos funcionando correctamente
+- ✅ Eliminación lógica funcional con administración completa
+- ✅ Todas las validaciones de seguridad implementadas
+- ✅ API completamente documentada y coherente
 
-## 🔄 Próximos Pasos (Opcionales)
-- [ ] Integración con APIs de mapas
-- [ ] Notificaciones push
-- [ ] Cache con Redis
-- [ ] Tests unitarios y de integración
-- [ ] Deployment en AWS/Heroku
-- [ ] Métricas y monitoreo
+## � Estadísticas del Proyecto
 
-## 👥 Equipo de Desarrollo
-- **Backend Developer**: Encargado del servidor Node.js, APIs e integración con IA
-- **Product Owner**: Definición de requerimientos y visión del proyecto
-- **Scrum Master / QA**: Metodología ágil, pruebas y calidad del software
-- **Frontend Developer**: Interfaz web en React (repositorio separado)
-
----
-
-**TravelMate API v1.0** - Desarrollado con ❤️ usando Node.js y OpenAI
-
----
-
-## 🛠️ Tecnologías
-
-- 🟢 **Node.js** – Entorno de ejecución en servidor  
-- 🚂 **Express.js** – Framework para APIs REST  
-- 🍃 **MongoDB / Mongoose** – Base de datos y modelado de datos  
-- 🌐 **MongoDB Atlas** – Base de datos en la nube  
-- 🤖 **OpenAI API** – ChatBot inteligente y generación de itinerarios  
-
----
-
-## 🌟 Características
-
-- Autenticación y autorización de usuarios con roles  
-- Gestión de usuarios e itinerarios (CRUD)  
-- ChatBot de IA integrado para planificación de viajes  
-- Cálculo de presupuesto y generación de reportes PDF  
-- Middleware de validación y manejo de errores  
-
----
-
-## 📂 Estructura principal
-
+### Dependencias
+```json
+{
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^4.21.2",
+    "express-list-endpoints": "^7.1.1",
+    "html2canvas": "^1.4.1",
+    "jsonwebtoken": "^9.0.2",
+    "jspdf": "^3.0.2",
+    "mongoose": "^8.18.0",
+    "morgan": "^1.10.1",
+    "node-cron": "^4.2.1",
+    "openai": "^5.19.1",
+    "puppeteer": "^24.19.0",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
 ```
 
-server/
-├── src/
-│   ├── auth/          # Autenticación (controller, service, router, middleware)
-│   ├── controllers/   # Controladores principales
-│   ├── services/      # Lógica de negocio
-│   ├── models/        # Modelos de datos
-│   ├── routers/       # Rutas del backend
-│   ├── middlewares/   # Middlewares personalizados
-│   ├── utils/         # Utilidades (logger, hashing, token)
-│   ├── app.js         # Configuración principal de Express
-│   └── seed.js        # Datos de ejemplo / inicialización
-├── package.json        # Dependencias y scripts
-├── .env                # Variables de entorno
-└── README.md           # Este documento
+### Endpoints Totales
+- **Autenticación**: 5 endpoints
+- **Usuarios**: 12 endpoints (6 regulares + 6 admin)
+- **Viajes**: 12 endpoints (8 regulares + 4 admin)
+- **ChatBot**: 3 endpoints
+- **Total**: 32 endpoints funcionales
 
-````
-
----
-
-## 🏷️ Scripts del `package.json`
+## 🔄 Scripts NPM
 
 ```json
-"scripts": {
-  "start": "node index.js",
-  "dev": "nodemon index.js"
+{
+  "start": "node index.js",      // Producción
+  "dev": "nodemon index.js"      // Desarrollo con recarga automática
 }
-````
+```
 
-### Explicación de cada script
+### Comandos de Ejecución
 
-1. **`start`** – 🚀 Iniciar servidor en producción
+```bash
+# Instalar dependencias
+npm install
 
-   ```bash
-   npm start
-   ```
+# Desarrollo (recomendado)
+npm run dev
 
-   * Ejecuta el backend usando **Node.js**.
-   * Se usa para desplegar la app en producción.
+# Producción
+npm start
+```
 
-2. **`dev`** – ⚡ Modo desarrollo con recarga automática
+## 🌐 Configuración de Producción
 
-   ```bash
-   npm run dev
-   ```
+### Variables de Entorno Requeridas
+```env
+PORT=3000
+MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/travelmate
+JWT_SECRET=super-secret-key-min-32-characters-for-production
+JWT_REFRESH_SECRET=another-super-secret-key-min-32-characters
+OPENAI_API_KEY=sk-your-production-openai-key
+CORS_ORIGIN=https://your-frontend-domain.com
+NODE_ENV=production
+```
 
-   * Ejecuta el servidor con **nodemon**, reiniciando automáticamente al detectar cambios en el código.
-   * Ideal para desarrollo y pruebas locales.
+### Consideraciones de Deployment
+- **MongoDB Atlas** recomendado para producción
+- **Heroku, Railway, o AWS** para hosting del backend
+- **Variables de entorno** configuradas en el servicio de hosting
+- **CORS** configurado para el dominio del frontend
+- **HTTPS** obligatorio en producción
+
+## 👥 Equipo de Desarrollo
+
+- **Backend Developer**: API Node.js, integración IA, bases de datos
+- **Frontend Developer**: Interfaz React, integración con API
+- **Product Owner**: Requerimientos, visión del producto, priorización
+- **Scrum Master / QA**: Metodología ágil, testing, calidad del software
 
 ---
 
@@ -486,5 +713,16 @@ server/
 
 ---
 
-> Este README sirve como guía rápida del backend, referencia de su estructura, tecnologías y scripts. ✨
+## 📞 Soporte y Documentación
+
+- **API Documentation**: `api-endpoints.json` (completa y actualizada)
+- **Endpoints Summary**: `ENDPOINTS-SUMMARY.md`
+- **Logs**: Archivos `combined.log` y `error.log` con Winston
+- **Code Structure**: Arquitectura modular y bien documentada
+
+---
+
+**TravelMate API v1.0** - Desarrollado con ❤️ usando Node.js, MongoDB y OpenAI
+
+
 
