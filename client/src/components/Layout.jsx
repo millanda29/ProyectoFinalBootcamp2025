@@ -13,12 +13,6 @@ const Layout = () => {
   const { logout, user } = useAuth()
   const currentPath = location.pathname
 
-  console.log('🏗️ Layout: Datos del usuario:', user)
-  console.log('🔐 Layout: Roles del usuario:', user?.roles)
-  console.log('🔐 Layout: Primer rol:', user?.roles?.[0])
-  console.log('❓ Layout: ¿Es admin?', user?.roles?.includes('admin'))
-  console.log('📍 Layout: Ubicación actual:', currentPath)
-
   const handleLogout = async () => {
     try {
       await logout();
@@ -32,10 +26,6 @@ const Layout = () => {
 
   // ✅ Configurar navItems dinámicamente basado en el rol del usuario
   const getNavItems = () => {
-    console.log('🔧 getNavItems: Verificando rol del usuario...')
-    console.log('👤 getNavItems: Usuario completo:', JSON.stringify(user, null, 2))
-    console.log('🔐 getNavItems: Roles del usuario:', user?.roles)
-    console.log('❓ getNavItems: ¿Es admin?', user?.roles?.includes('admin'))
     
     const baseItems = [
       { id: 'dashboard', label: 'Dashboard', icon: Plane, path: '/dashboard' },
@@ -46,14 +36,9 @@ const Layout = () => {
     ]
 
     // ✅ Solo añadir la pestaña Admin si el usuario tiene el rol 'admin'
-    if (user?.roles?.includes('admin')) {
-      console.log('✅ getNavItems: Usuario es admin, agregando pestaña Admin')
+    if (user?.roles?.includes('admin')) { 
       baseItems.push({ id: 'admin', label: 'Admin', icon: Shield, path: '/admin', badge: 'Admin' })
-    } else {
-      console.log('❌ getNavItems: Usuario NO es admin, omitiendo pestaña Admin')
     }
-
-    console.log('📋 getNavItems: Items finales:', baseItems.map(item => item.label))
     return baseItems
   }
 
@@ -69,12 +54,7 @@ const Layout = () => {
               <Logo size="default" variant="default" />
             </Link>
 
-            <div className="flex items-center space-x-4">
-              {/* DEBUG: Mostrar información del usuario temporalmente */}
-              <div className="text-xs bg-yellow-100 px-2 py-1 rounded border">
-                DEBUG: {user?.email || 'No user'} | Roles: {user?.roles?.join(', ') || 'No roles'}
-              </div>
-              
+            <div className="flex items-center space-x-4">        
               <Badge className="hidden sm:inline-flex bg-yellow-400 text-blue-900 hover:bg-yellow-500 font-semibold">
                 Pro
               </Badge>

@@ -74,8 +74,7 @@ export const login = async ({ email, password }) => {
   try {
     const data = JSON.parse(responseText);
     return data;
-  } catch (parseError) {
-    console.error('Failed to parse response:', parseError);
+  } catch {
     throw new Error('Login failed - Invalid response format');
   }
 };
@@ -94,9 +93,13 @@ export const register = async (userData) => {
 };
 
 // 🔹 Refresh token
-export const refreshToken = async () => {
+export const refreshToken = async (refreshTokenValue) => {
+  const requestBody = refreshTokenValue ? { refreshToken: refreshTokenValue } : {};
+  
   const res = await fetch(`${API_URL}/refresh`, {
-    method: "POST", // 🔑 mejor usar POST
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(requestBody),
     credentials: "include"
   });
 
@@ -104,9 +107,16 @@ export const refreshToken = async () => {
 };
 
 // 🔹 Logout
-export const logout = async () => {
+export const logout = async (token, refreshTokenValue) => {
+  const requestBody = refreshTokenValue ? { refreshToken: refreshTokenValue } : {};
+  
   const res = await fetch(`${API_URL}/logout`, {
     method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(requestBody),
     credentials: "include"
   });
 

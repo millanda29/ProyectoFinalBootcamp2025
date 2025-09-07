@@ -112,8 +112,8 @@ window.fetch = async function(url, options = {}) {
               return originalFetch.call(this, url, options);
             }
           }
-        } catch (refreshError) {
-          console.error('Token refresh failed:', refreshError);
+        } catch {
+          // Token refresh failed - redirect to login
         }
         
         // Si falla el refresh, limpiar tokens y redirigir al login
@@ -128,7 +128,6 @@ window.fetch = async function(url, options = {}) {
       
       return response;
     } catch (error) {
-      console.error('Fetch error:', error);
       throw error;
     }
   }
@@ -152,8 +151,8 @@ export const isAuthenticated = () => {
 export const authAPI = {
   login: auth.login,
   register: auth.register,
-  refreshToken: auth.refreshToken,
-  logout: auth.logout,
+  refreshToken: (refreshTokenValue) => auth.refreshToken(refreshTokenValue),
+  logout: (token, refreshTokenValue) => auth.logout(token, refreshTokenValue),
 };
 
 // 🔹 Exportar todas las funciones de usuarios
@@ -164,9 +163,14 @@ export const usersAPI = {
   updateProfile: (token, profileData) => users.updateProfile(token, profileData),
   updateTravelPreferences: (token, preferences) => users.updateTravelPreferences(token, preferences),
   updateNotifications: (token, notifications) => users.updateNotifications(token, notifications),
-  getTravelHistory: (token) => users.getTravelHistory(token),
+  getUserTrips: (token) => users.getUserTrips(token),
   changePassword: (token, passwordData) => users.changePassword(token, passwordData),
   findSimilarUsers: (token, queryParams) => users.findSimilarUsers(token, queryParams),
+  
+  // Account deletion management
+  scheduleAccountDeletion: (token, reason) => users.scheduleAccountDeletion(token, reason),
+  cancelAccountDeletion: (token) => users.cancelAccountDeletion(token),
+  deleteAccountImmediate: (token, password) => users.deleteAccountImmediate(token, password),
   
   // Admin functions
   admin: {
@@ -175,8 +179,14 @@ export const usersAPI = {
     getUserById: (token, userId) => users.getUserById(token, userId),
     updateUser: (token, userId, userData) => users.updateUser(token, userId, userData),
     deleteUser: (token, userId) => users.deleteUser(token, userId),
-    resetPassword: (token, userId, passwordData) => users.resetPassword(token, userId, passwordData),
+    activateUser: (token, userId) => users.activateUser(token, userId),
+    deactivateUser: (token, userId) => users.deactivateUser(token, userId),
+    resetPassword: (token, userId, newPassword) => users.resetPassword(token, userId, newPassword),
     getStats: (token) => users.getStats(token),
+    getDashboardStats: (token) => users.getDashboardStats(token),
+    getDeletedUsers: (token) => users.getDeletedUsers(token),
+    restoreUser: (token, userId) => users.restoreUser(token, userId),
+    permanentlyDeleteUser: (token, userId) => users.permanentlyDeleteUser(token, userId),
   }
 };
 
@@ -196,6 +206,20 @@ export const tripsAPI = {
   generatePdfReport: (token, tripId) => trips.generatePdfReport(token, tripId),
   createTripReport: (token, tripId) => trips.createTripReport(token, tripId),
   exportTrip: (token, tripId, format) => trips.exportTrip(token, tripId, format),
+  
+  // Report management
+  getTripReports: (token, tripId) => trips.getTripReports(token, tripId),
+  servePDF: (token, tripId) => trips.servePDF(token, tripId),
+  
+  // Admin functions
+  admin: {
+    getAllTrips: (token, queryParams) => trips.getAllTrips(token, queryParams),
+    getTripsByStatus: (token, status, queryParams) => trips.getTripsByStatus(token, status, queryParams),
+    cleanupOrphanedPDFs: (token) => trips.cleanupOrphanedPDFs(token),
+    getDeletedTrips: (token) => trips.getDeletedTrips(token),
+    restoreTrip: (token, tripId) => trips.restoreTrip(token, tripId),
+    permanentlyDeleteTrip: (token, tripId) => trips.permanentlyDeleteTrip(token, tripId),
+  }
 };
 
 // 🔹 Exportar todas las funciones de chat/IA
@@ -222,6 +246,39 @@ export const chatAPI = {
 export const apiUtils = {
   getStoredToken,
   isAuthenticated,
+  
+  // 🔹 Función para obtener estadísticas completas del dashboard admin
+  getAdminDashboardStats: async (token) => {
+    try {
+      const [userStats, tripStats] = await Promise.all([
+        usersAPI.admin.getDashboardStats(token),
+        tripsAPI.admin.getTripStats(token)
+      ]);
+      
+      return {
+        success: true,
+        data: {
+          users: userStats.data,
+          trips: tripStats.data,
+          summary: {
+            totalUsers: userStats.data?.totalUsers || 0,
+            activeUsers: userStats.data?.activeUsers || 0,
+            inactiveUsers: userStats.data?.inactiveUsers || 0,
+            totalTrips: tripStats.data?.totalTrips || 0,
+            activeTrips: tripStats.data?.activeTrips || 0,
+            completedTrips: tripStats.data?.completedTrips || 0,
+            plannedTrips: tripStats.data?.plannedTrips || 0,
+            cancelledTrips: tripStats.data?.cancelledTrips || 0
+          }
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message
+      };
+    }
+  },
   
   // Función para hacer peticiones genéricas
   request: async (endpoint, options = {}) => {
@@ -250,9 +307,8 @@ export const apiUtils = {
       
       if (!response.ok) {
         let errorData;
-        try {
-          errorData = await response.json();
-        } catch {
+        errorData = await response.json().catch(() => null);
+        if (!errorData) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
@@ -260,7 +316,6 @@ export const apiUtils = {
 
       return await response.json();
     } catch (error) {
-      console.error('API Request failed:', error);
       throw error;
     }
   },

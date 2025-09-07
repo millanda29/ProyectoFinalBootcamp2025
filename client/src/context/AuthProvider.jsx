@@ -11,7 +11,6 @@ const AuthProvider = ({ children }) => {
 
   // Helper para extraer datos de usuario de diferentes estructuras de respuesta
   const extractUserData = (response) => {
-    console.log('🔧 extractUserData: Analizando respuesta:', response);
     
     // Posibles ubicaciones del usuario en la respuesta
     const possiblePaths = [
@@ -24,13 +23,9 @@ const AuthProvider = ({ children }) => {
     for (let i = 0; i < possiblePaths.length; i++) {
       const userData = possiblePaths[i];
       if (userData && (userData.email || userData.id)) {
-        console.log(`✅ extractUserData: Usuario encontrado en path ${i}:`, userData);
-        console.log(`🔐 extractUserData: Rol extraído:`, userData.role);
         return userData;
       }
     }
-    
-    console.log('❌ extractUserData: No se pudo extraer usuario de la respuesta');
     return null;
   };
 
@@ -56,9 +51,8 @@ const AuthProvider = ({ children }) => {
           
           // Intentar cargar datos del usuario con el token guardado
           try {
-            console.log('🔍 AuthProvider: Intentando cargar perfil con token:', localToken?.substring(0, 20) + '...');
+            
             const userProfileResponse = await api.users.getProfile(localToken);
-            console.log('📊 AuthProvider: Respuesta getProfile:', userProfileResponse);
             
             const userData = extractUserData(userProfileResponse);
             if (userData) {
@@ -104,9 +98,9 @@ const AuthProvider = ({ children }) => {
 
   const login = useCallback(async (email, password) => {
     try {
-      console.log('🔐 AuthProvider Login: Iniciando login para:', email);
+      
       const response = await api.auth.login({ email, password });
-      console.log('📊 AuthProvider Login: Respuesta completa:', response);
+      
       
       // La respuesta puede venir envuelta en data o directamente
       const data = response.data || response;
@@ -118,8 +112,6 @@ const AuthProvider = ({ children }) => {
       if (!token) {
         throw new Error('No se recibió token de autenticación');
       }
-      
-      console.log('🔑 AuthProvider Login: Token recibido:', token?.substring(0, 20) + '...');
       
       // Reset logout flag al hacer login exitoso
       setHasLoggedOut(false);
@@ -133,28 +125,19 @@ const AuthProvider = ({ children }) => {
         localStorage.setItem("refreshToken", refresh);
       }
       
-      // Guardar información del usuario si viene en la respuesta
-      console.log('� AuthProvider Login: Respuesta completa:', JSON.stringify(data, null, 2));
-      
       const userData = extractUserData(data);
       if (userData) {
         setUser(userData);
       } else {
-        // Si no se puede extraer de la respuesta, intentar cargar el perfil
-        console.log('🔍 AuthProvider Login: No hay usuario en respuesta, cargando perfil...');
         try {
-          console.log('🔍 AuthProvider Login: Cargando perfil separadamente...');
           const userProfileResponse = await api.users.getProfile(token);
-          console.log('📊 AuthProvider Login: Respuesta getProfile:', userProfileResponse);
           
           const profileUserData = extractUserData(userProfileResponse);
           if (profileUserData) {
             setUser(profileUserData);
-          } else {
-            console.log('❌ AuthProvider Login: No se pudo extraer usuario del perfil');
           }
         } catch (error) {
-          console.error('❌ AuthProvider Login: Error al cargar perfil:', error);
+          console.error('Error al cargar perfil:', error);
         }
       }
       

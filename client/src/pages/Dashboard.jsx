@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 
 const Dashboard = () => {
-  const { accessToken, user } = useAuth()
+  const { accessToken } = useAuth()
   const navigate = useNavigate()
   const [trips, setTrips] = useState([])
   const [stats, setStats] = useState({
@@ -17,20 +17,17 @@ const Dashboard = () => {
     totalBudget: 0,
     favoriteDestination: ''
   })
-  const [loading, setLoading] = useState(false)
 
   // ✅ Cargar datos del dashboard usando endpoints reales
   useEffect(() => {
     const loadDashboardData = async () => {
       if (!accessToken) return
       
-      setLoading(true)
       try {
-        // Usar la función correcta para obtener viajes del usuario
-        const response = await api.users.getTravelHistory(accessToken)
-        console.log('Travel history response:', response)
+        // ✅ Usar el endpoint correcto para obtener viajes del usuario
+        const response = await api.users.getUserTrips(accessToken)
         
-        // La respuesta tiene estructura: { success: true, data: [...], count: 1 }
+        // La respuesta tiene estructura: { success: true, data: [...], pagination: {...} }
         const tripsData = Array.isArray(response.data) ? response.data : []
         setTrips(tripsData)
         
@@ -68,8 +65,6 @@ const Dashboard = () => {
           totalBudget: 0,
           favoriteDestination: 'No hay viajes'
         })
-      } finally {
-        setLoading(false)
       }
     }
     

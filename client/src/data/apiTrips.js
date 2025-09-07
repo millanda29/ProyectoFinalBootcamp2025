@@ -108,7 +108,7 @@ export const addCosts = async (token, tripId, costs) => {
   const res = await fetch(`${API_URL}/${tripId}/costs`, {
     method: "PUT",
     headers: getAuthHeaders(token),
-    body: JSON.stringify(costs),
+    body: JSON.stringify({ costs }),
     credentials: "include"
   });
   return handleResponse(res, "Failed to add costs");
@@ -118,7 +118,7 @@ export const updateItinerary = async (token, tripId, itinerary) => {
   const res = await fetch(`${API_URL}/${tripId}/itinerary`, {
     method: "PUT",
     headers: getAuthHeaders(token),
-    body: JSON.stringify(itinerary),
+    body: JSON.stringify({ itinerary }),
     credentials: "include"
   });
   return handleResponse(res, "Failed to update itinerary");
@@ -162,7 +162,7 @@ export const cancelTrip = async (token, tripId) => {
   return handleResponse(res, "Failed to cancel trip");
 };
 
-export const generatePdfReport = async (token, tripId) => {
+export const generateReport = async (token, tripId) => {
   const res = await fetch(`${API_URL}/${tripId}/pdf`, {
     headers: { "Authorization": `Bearer ${token}` },
     credentials: "include"
@@ -176,19 +176,95 @@ export const generatePdfReport = async (token, tripId) => {
   return await res.blob();
 };
 
-export const createTripReport = async (token, tripId) => {
-  const res = await fetch(`${API_URL}/${tripId}/report`, {
-    method: "POST",
-    headers: { "Authorization": `Bearer ${token}` },
-    credentials: "include"
-  });
-  return handleResponse(res, "Failed to create trip report");
-};
-
 export const exportTrip = async (token, tripId, format = 'json') => {
   const res = await fetch(`${API_URL}/${tripId}/export?format=${format}`, {
     headers: { "Authorization": `Bearer ${token}` },
     credentials: "include"
   });
   return handleResponse(res, "Failed to export trip");
+};
+
+// 🔹 Trip Reports Management
+export const getTripReports = async (token, tripId) => {
+  const res = await fetch(`${API_URL}/${tripId}/reports`, {
+    headers: { "Authorization": `Bearer ${token}` },
+    credentials: "include"
+  });
+  return handleResponse(res, "Failed to get trip reports");
+};
+
+export const servePDF = async (token, tripId) => {
+  const res = await fetch(`${API_URL}/${tripId}/pdf`, {
+    headers: { "Authorization": `Bearer ${token}` },
+    credentials: "include"
+  });
+  
+  if (!res.ok) {
+    throw new Error(`Error al descargar PDF: ${res.status}`);
+  }
+  
+  // Retornar el blob directamente para PDF
+  return await res.blob();
+};
+
+// 🔹 Admin Trip Management
+export const getAllTrips = async (token, queryParams = {}) => {
+  const url = new URL(API_URL);
+  Object.keys(queryParams).forEach(key => 
+    url.searchParams.append(key, queryParams[key])
+  );
+  
+  const res = await fetch(url, {
+    headers: { "Authorization": `Bearer ${token}` },
+    credentials: "include"
+  });
+  return handleResponse(res, "Failed to get all trips");
+};
+
+export const cleanupOrphanedPDFs = async (token) => {
+  const res = await fetch(`${API_URL}/cleanup/orphaned-pdfs`, {
+    method: "DELETE",
+    headers: { "Authorization": `Bearer ${token}` },
+    credentials: "include"
+  });
+  return handleResponse(res, "Failed to cleanup orphaned PDFs");
+};
+
+export const getDeletedTrips = async (token) => {
+  const res = await fetch(`${API_URL}/deleted`, {
+    headers: { "Authorization": `Bearer ${token}` },
+    credentials: "include"
+  });
+  return handleResponse(res, "Failed to get deleted trips");
+};
+
+export const restoreTrip = async (token, tripId) => {
+  const res = await fetch(`${API_URL}/${tripId}/restore`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${token}` },
+    credentials: "include"
+  });
+  return handleResponse(res, "Failed to restore trip");
+};
+
+export const permanentlyDeleteTrip = async (token, tripId) => {
+  const res = await fetch(`${API_URL}/${tripId}/permanent`, {
+    method: "DELETE",
+    headers: { "Authorization": `Bearer ${token}` },
+    credentials: "include"
+  });
+  return handleResponse(res, "Failed to permanently delete trip");
+};
+
+export const getTripsByStatus = async (token, status, queryParams = {}) => {
+  const url = new URL(`${API_URL}/admin/by-status/${status}`);
+  Object.keys(queryParams).forEach(key => 
+    url.searchParams.append(key, queryParams[key])
+  );
+  
+  const res = await fetch(url, {
+    headers: { "Authorization": `Bearer ${token}` },
+    credentials: "include"
+  });
+  return handleResponse(res, "Failed to get trips by status");
 };

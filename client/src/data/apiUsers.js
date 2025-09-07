@@ -100,12 +100,12 @@ export const updateNotifications = async (token, notifications) => {
   return handleResponse(res, "Failed to update notifications");
 };
 
-export const getTravelHistory = async (token) => {
+export const getUserTrips = async (token) => {
   const res = await fetch(`${API_URL}/me/trips`, {
     headers: { "Authorization": `Bearer ${token}` },
     credentials: "include"
   });
-  return handleResponse(res, "Failed to get travel history");
+  return handleResponse(res, "Failed to get user trips");
 };
 
 export const changePassword = async (token, passwordData) => {
@@ -182,20 +182,106 @@ export const deleteUser = async (token, userId) => {
   return handleResponse(res, "Failed to delete user");
 };
 
-export const resetPassword = async (token, userId, passwordData) => {
+// 🔹 Admin User Activation/Deactivation
+export const activateUser = async (token, userId) => {
+  const res = await fetch(`${API_URL}/admin/${userId}/activate`, {
+    method: "PUT",
+    headers: { "Authorization": `Bearer ${token}` },
+    credentials: "include"
+  });
+  return handleResponse(res, "Failed to activate user");
+};
+
+export const deactivateUser = async (token, userId) => {
+  const res = await fetch(`${API_URL}/admin/${userId}/deactivate`, {
+    method: "PUT",
+    headers: { "Authorization": `Bearer ${token}` },
+    credentials: "include"
+  });
+  return handleResponse(res, "Failed to deactivate user");
+};
+
+// 🔹 Admin Password Reset
+export const resetPassword = async (token, userId, newPassword) => {
   const res = await fetch(`${API_URL}/admin/${userId}/reset-password`, {
     method: "PUT",
     headers: getAuthHeaders(token),
-    body: JSON.stringify(passwordData),
+    body: JSON.stringify({ newPassword }),
     credentials: "include"
   });
   return handleResponse(res, "Failed to reset password");
 };
 
+// 🔹 Admin Statistics and Counts
 export const getStats = async (token) => {
   const res = await fetch(`${API_URL}/admin/stats`, {
     headers: { "Authorization": `Bearer ${token}` },
     credentials: "include"
   });
   return handleResponse(res, "Failed to get stats");
+};
+
+export const getDashboardStats = async (token) => {
+  const res = await fetch(`${API_URL}/admin/stats`, {
+    headers: { "Authorization": `Bearer ${token}` },
+    credentials: "include"
+  });
+  return handleResponse(res, "Failed to get dashboard stats");
+};
+
+// 🔹 Account Deletion Management
+export const scheduleAccountDeletion = async (token, reason) => {
+  const res = await fetch(`${API_URL}/me/schedule-deletion`, {
+    method: "POST",
+    headers: getAuthHeaders(token),
+    body: JSON.stringify({ reason }),
+    credentials: "include"
+  });
+  return handleResponse(res, "Failed to schedule account deletion");
+};
+
+export const cancelAccountDeletion = async (token) => {
+  const res = await fetch(`${API_URL}/me/cancel-deletion`, {
+    method: "DELETE",
+    headers: { "Authorization": `Bearer ${token}` },
+    credentials: "include"
+  });
+  return handleResponse(res, "Failed to cancel account deletion");
+};
+
+export const deleteAccountImmediate = async (token, password) => {
+  const res = await fetch(`${API_URL}/me`, {
+    method: "DELETE",
+    headers: getAuthHeaders(token),
+    body: JSON.stringify({ password }),
+    credentials: "include"
+  });
+  return handleResponse(res, "Failed to delete account");
+};
+
+// 🔹 Missing Admin Functions
+export const getDeletedUsers = async (token) => {
+  const res = await fetch(`${API_URL}/admin/deleted`, {
+    headers: { "Authorization": `Bearer ${token}` },
+    credentials: "include"
+  });
+  return handleResponse(res, "Failed to get deleted users");
+};
+
+export const restoreUser = async (token, userId) => {
+  const res = await fetch(`${API_URL}/admin/${userId}/restore`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${token}` },
+    credentials: "include"
+  });
+  return handleResponse(res, "Failed to restore user");
+};
+
+export const permanentlyDeleteUser = async (token, userId) => {
+  const res = await fetch(`${API_URL}/admin/${userId}/permanent`, {
+    method: "DELETE",
+    headers: { "Authorization": `Bearer ${token}` },
+    credentials: "include"
+  });
+  return handleResponse(res, "Failed to permanently delete user");
 };

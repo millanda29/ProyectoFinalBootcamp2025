@@ -25,29 +25,16 @@ const Chat = () => {
     scrollToBottom()
   }, [messages])
 
-  // ✅ Cargar conversaciones y sugerencias iniciales
+  // ✅ Cargar datos iniciales del chat
   useEffect(() => {
     const initializeChat = async () => {
       if (!accessToken) return
       
-      try {
-        // Cargar sugerencias de destinos
-        const destinationSuggestions = await api.chat.getDestinationSuggestions(accessToken)
-        setSuggestions(destinationSuggestions.slice(0, 4))
-        
-        // Cargar conversaciones previas si existen
-        const conversations = await api.chat.getMyConversations(accessToken)
-        if (conversations.length > 0) {
-          const lastConversation = conversations[0]
-          setConversationId(lastConversation._id)
-          // Opcional: cargar mensajes de la última conversación
-        }
-      } catch (error) {
-        console.error('Error initializing chat:', error)
-      }
+      // Solo inicializar con mensaje de bienvenida - no hacer llamadas a endpoints que no existen
+      // Las sugerencias se manejan de forma estática hasta que se implemente el backend
     }
 
-    // Mensaje de bienvenida
+    // Mensaje de bienvenida con sugerencias estáticas
     const welcomeMessage = {
       id: Date.now(),
       type: 'assistant',
@@ -72,7 +59,7 @@ const Chat = () => {
     setMessages([welcomeMessage])
     setSuggestions(welcomeMessage.suggestions)
     
-    // Inicializar chat con datos del servidor
+    // Inicializar sin llamadas al servidor que fallan
     initializeChat()
   }, [accessToken])
 

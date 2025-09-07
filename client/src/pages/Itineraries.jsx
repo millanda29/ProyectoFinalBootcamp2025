@@ -24,10 +24,10 @@ const Itineraries = () => {
       
       setLoading(true)
       try {
-        const response = await api.users.getTravelHistory(accessToken)
-        console.log('Travel history response in Itineraries:', response)
+        // ✅ Usar el endpoint correcto para obtener viajes del usuario
+        const response = await api.trips.getMyTrips(accessToken)
         
-        // La respuesta tiene estructura: { success: true, data: [...], count: 1 }
+        // La respuesta tiene estructura: { success: true, data: [...], pagination: {...} }
         const tripsData = Array.isArray(response.data) ? response.data : []
         setTrips(tripsData)
       } catch (error) {
@@ -64,7 +64,7 @@ const Itineraries = () => {
   const handleExportPDF = async (tripId) => {
     try {
       // Usar la función de la API para descargar PDF
-      const pdfBlob = await api.trips.generatePdfReport(accessToken, tripId)
+      const pdfBlob = await api.trips.generateReport(accessToken, tripId)
       
       // Verificar que es un blob válido
       if (!pdfBlob || pdfBlob.size === 0) {

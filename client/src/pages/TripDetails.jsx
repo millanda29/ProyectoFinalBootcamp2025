@@ -28,13 +28,11 @@ const TripDetails = () => {
 
       try {
         setLoading(true)
-        // Primero obtener la lista de viajes y encontrar el específico
-        const response = await api.users.getTravelHistory(accessToken)
-        const tripsData = Array.isArray(response.data) ? response.data : []
-        const foundTrip = tripsData.find(t => t._id === tripId)
+        // ✅ Usar el endpoint específico para obtener un viaje por ID
+        const response = await api.trips.getTripById(accessToken, tripId)
         
-        if (foundTrip) {
-          setTrip(foundTrip)
+        if (response.success && response.data) {
+          setTrip(response.data)
         } else {
           setError('Viaje no encontrado')
         }
@@ -90,7 +88,7 @@ const TripDetails = () => {
   const handleExportPDF = async () => {
     try {
       // Usar la función de la API para descargar PDF
-      const pdfBlob = await api.trips.generatePdfReport(accessToken, tripId)
+      const pdfBlob = await api.trips.generateReport(accessToken, tripId)
       
       // Verificar que es un blob válido
       if (!pdfBlob || pdfBlob.size === 0) {
@@ -115,10 +113,10 @@ const TripDetails = () => {
 
   const handleGenerateReport = async () => {
     try {
-      // Usar la función de la API para crear reporte
-      const response = await api.trips.createTripReport(accessToken, tripId)
+      // ✅ Usar la función correcta para generar reporte PDF
+      const response = await api.trips.generateReport(accessToken, tripId)
       console.log('Report generated:', response)
-      utils.showSuccess('Reporte generado exitosamente')
+      utils.showSuccess('Reporte PDF generado exitosamente')
       
       // Opcional: recargar la página para mostrar el nuevo reporte
       window.location.reload()

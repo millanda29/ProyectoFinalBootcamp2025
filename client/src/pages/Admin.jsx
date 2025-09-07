@@ -21,7 +21,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { Navigate } from 'react-router-dom'
-import api, { utils } from '../data/api.js'
+import { usersAPI, tripsAPI, utils } from '../data/api.js'
 
 const Admin = () => {
   const { accessToken, user, loading: authLoading } = useAuth()
@@ -45,18 +45,42 @@ const Admin = () => {
       
       setLoading(true)
       try {
-        // ✅ Usar endpoints reales de admin
-        const [adminStatsResponse, allUsersResponse] = await Promise.all([
-          api.users.getAdminStats(accessToken),
-          api.users.getAllUsers(accessToken)
-        ])
+        // ✅ Cargar estadísticas de usuarios
+        const userStatsResponse = await usersAPI.admin.getDashboardStats(accessToken)
         
-        setStats(adminStatsResponse)
-        setUsers(allUsersResponse.users || allUsersResponse)
+        // ✅ Cargar lista de trips para calcular estadísticas localmente
+        const tripsResponse = await tripsAPI.admin.getAllTrips(accessToken)
         
-        // TODO: Cargar trips cuando el endpoint esté disponible
-        // const tripsResponse = await api.trips.getAllTrips(accessToken)
-        // setTrips(tripsResponse.trips || tripsResponse)
+        // Procesar estadísticas de usuarios
+        const userStats = userStatsResponse?.data || userStatsResponse || {}
+        
+        // Procesar datos de trips y calcular estadísticas localmente
+        const tripData = tripsResponse?.data || tripsResponse
+        const tripsArray = tripData?.trips || tripData || []
+        setTrips(Array.isArray(tripsArray) ? tripsArray : [])
+        
+        // Calcular estadísticas de trips localmente
+        const tripStats = {
+          totalTrips: tripsArray.length || 0,
+          activeTrips: tripsArray.filter(trip => trip.status === 'active').length || 0,
+          completedTrips: tripsArray.filter(trip => trip.status === 'completed').length || 0,
+          plannedTrips: tripsArray.filter(trip => trip.status === 'planned').length || 0,
+          cancelledTrips: tripsArray.filter(trip => trip.status === 'cancelled').length || 0
+        }
+        
+        setStats({
+          totalUsers: userStats.totalUsers || 0,
+          activeUsers: userStats.activeUsers || 0,
+          totalTrips: tripStats.totalTrips,
+          totalMessages: 0 // TODO: Implementar cuando tengamos stats de chat
+        })
+        
+        // Cargar lista de usuarios
+        const allUsersResponse = await usersAPI.admin.getAllUsers(accessToken)
+        
+        const userData = allUsersResponse?.data || allUsersResponse
+        const usersArray = userData?.users || userData || []
+        setUsers(Array.isArray(usersArray) ? usersArray : [])
         
       } catch (error) {
         console.error('Error loading admin data:', error)
@@ -87,8 +111,12 @@ const Admin = () => {
 
   const handleUserStatusToggle = async (userId, currentStatus) => {
     try {
-      // ✅ Usar endpoint real para actualizar usuario
-      await api.users.updateUserById(accessToken, userId, { isActive: !currentStatus })
+      // ✅ Usar endpoints específicos de activar/desactivar
+      if (currentStatus) {
+        await usersAPI.admin.deactivateUser(accessToken, userId)
+      } else {
+        await usersAPI.admin.activateUser(accessToken, userId)
+      }
       
       setUsers(prev => prev.map(user => 
         user._id === userId 
@@ -109,28 +137,13 @@ const Admin = () => {
 
     try {
       // ✅ Usar endpoint real para eliminar usuario
-      await api.users.deleteUserById(accessToken, userId)
+      await usersAPI.admin.deleteUser(accessToken, userId)
       
       setUsers(prev => prev.filter(user => user._id !== userId))
       utils.showSuccess('Usuario eliminado exitosamente')
     } catch (error) {
       console.error('Error deleting user:', error)
       utils.showError('Error al eliminar usuario')
-    }
-  }
-
-  const handleResetUserPassword = async (userId) => {
-    if (!window.confirm('¿Estás seguro de que deseas resetear la contraseña de este usuario?')) {
-      return
-    }
-
-    try {
-      // ✅ Usar endpoint real para resetear contraseña
-      await api.users.resetUserPassword(accessToken, userId)
-      utils.showSuccess('Contraseña reseteada exitosamente')
-    } catch (error) {
-      console.error('Error resetting password:', error)
-      utils.showError('Error al resetear contraseña')
     }
   }
 
@@ -141,7 +154,7 @@ const Admin = () => {
 
     try {
       // ✅ Usar endpoint real para eliminar viaje
-      await api.trips.deleteTrip(accessToken, tripId)
+      await tripsAPI.deleteTrip(accessToken, tripId)
       
       setTrips(prev => prev.filter(trip => trip._id !== tripId))
       utils.showSuccess('Viaje eliminado exitosamente')
@@ -239,15 +252,16 @@ const Admin = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {users.map((user) => (
-                  <div key={user._id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                        <Users className="h-5 w-5 text-gray-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-gray-900">{user.name}</h3>
-                        <p className="text-sm text-gray-500">{user.email}</p>
+                {Array.isArray(users) && users.length > 0 ? (
+                  users.map((user) => (
+                    <div key={user._id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                          <Users className="h-5 w-5 text-gray-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900">{user.fullName || user.name || 'Sin nombre'}</h3>
+                          <p className="text-sm text-gray-500">{user.email}</p>
                         <div className="flex items-center space-x-2 mt-1">
                           <Badge variant={user.roles?.includes('admin') ? 'default' : 'secondary'}>
                             {user.roles?.[0] || 'user'}
@@ -266,9 +280,23 @@ const Admin = () => {
                       >
                         {user.isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteUser(user._id)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        Eliminar
+                      </Button>
                     </div>
                   </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>No hay usuarios para mostrar</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

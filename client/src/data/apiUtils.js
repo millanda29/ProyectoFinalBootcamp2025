@@ -53,8 +53,6 @@ export const handleApiResponse = async (response) => {
 
 // 🔹 Handle Network Error
 export const handleNetworkError = (error) => {
-  console.error('🔴 Network Error:', error);
-  
   if (error instanceof ApiError) {
     throw error;
   }
@@ -216,8 +214,7 @@ export const getStorageItem = (key, defaultValue = null) => {
   try {
     const item = localStorage.getItem(key);
     return item ? JSON.parse(item) : defaultValue;
-  } catch (error) {
-    console.error(`Error getting storage item ${key}:`, error);
+  } catch {
     return defaultValue;
   }
 };
@@ -225,16 +222,16 @@ export const getStorageItem = (key, defaultValue = null) => {
 export const setStorageItem = (key, value) => {
   try {
     localStorage.setItem(key, JSON.stringify(value));
-  } catch (error) {
-    console.error(`Error setting storage item ${key}:`, error);
+  } catch {
+    // Storage operation failed
   }
 };
 
 export const removeStorageItem = (key) => {
   try {
     localStorage.removeItem(key);
-  } catch (error) {
-    console.error(`Error removing storage item ${key}:`, error);
+  } catch {
+    // Storage operation failed
   }
 };
 
@@ -256,7 +253,6 @@ export const retry = async (fn, retries = 3, delay = 1000) => {
     } catch (error) {
       if (i === retries - 1) throw error;
       
-      console.warn(`Retry ${i + 1}/${retries} failed:`, error.message);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
@@ -288,16 +284,13 @@ export const safeJsonParse = (str, defaultValue = null) => {
 };
 
 // 🔹 Success Notification Helper
-export const showSuccess = (message) => {
-  console.log('✅ Success:', message);
-  // Aquí puedes integrar con tu sistema de notificaciones (toast, etc.)
+export const showSuccess = () => {
+  // Integrate with your notification system (toast, etc.)
 };
 
 // 🔹 Error Notification Helper
-export const showError = (error) => {
-  const message = error instanceof ApiError ? error.message : ERROR_MESSAGES.SERVER_ERROR;
-  console.error('❌ Error:', message);
-  // Aquí puedes integrar con tu sistema de notificaciones (toast, etc.)
+export const showError = () => {
+  // Integrate with your notification system (toast, etc.)
 };
 
 // 🔹 Loading State Helper
