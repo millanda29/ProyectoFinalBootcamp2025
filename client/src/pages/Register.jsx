@@ -12,7 +12,7 @@ import { utils } from '../data/api.js'
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    name: '',
+    fullName: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -103,10 +103,10 @@ const Register = () => {
     const newErrors = {}
 
     // Validar nombre
-    if (!formData.name.trim()) {
-      newErrors.name = 'El nombre es requerido'
-    } else if (formData.name.trim().length < 2) {
-      newErrors.name = 'El nombre debe tener al menos 2 caracteres'
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = 'El nombre es requerido'
+    } else if (formData.fullName.trim().length < 2) {
+      newErrors.fullName = 'El nombre debe tener al menos 2 caracteres'
     }
 
     // Validar email
@@ -148,7 +148,7 @@ const Register = () => {
     try {
       // ✅ Usar función de register del contexto
       await register({
-        name: formData.name.trim(),
+        fullName: formData.fullName.trim(),
         email: formData.email.trim(),
         password: formData.password
       })
@@ -193,20 +193,20 @@ const Register = () => {
         <CardContent className="pt-0">
           <form onSubmit={handleRegister} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-gray-700 font-medium">Nombre completo</Label>
+              <Label htmlFor="fullName" className="text-gray-700 font-medium">Nombre completo</Label>
               <Input
-                id="name"
-                name="name"
+                id="fullName"
+                name="fullName"
                 type="text"
                 placeholder="Tu nombre completo"
-                value={formData.name}
+                value={formData.fullName}
                 onChange={handleInputChange}
                 className={`border-gray-300 focus:border-blue-500 focus:ring-blue-500 h-11 ${
-                  errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
+                  errors.fullName ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
                 }`}
                 required
               />
-              {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+              {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName}</p>}
             </div>
             
             <div className="space-y-2">

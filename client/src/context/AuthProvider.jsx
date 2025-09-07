@@ -105,8 +105,11 @@ const AuthProvider = ({ children }) => {
   const login = useCallback(async (email, password) => {
     try {
       console.log('🔐 AuthProvider Login: Iniciando login para:', email);
-      const data = await api.auth.login({ email, password });
-      console.log('📊 AuthProvider Login: Respuesta completa:', data);
+      const response = await api.auth.login({ email, password });
+      console.log('📊 AuthProvider Login: Respuesta completa:', response);
+      
+      // La respuesta puede venir envuelta en data o directamente
+      const data = response.data || response;
       
       // La respuesta tiene token y refreshToken
       const token = data.token;
@@ -167,13 +170,17 @@ const AuthProvider = ({ children }) => {
   }, []);
 
   const register = useCallback(async (userData) => {
-    const data = await api.auth.register(userData);
+    const response = await api.auth.register(userData);
+    
+    // La respuesta puede venir envuelta en data o directamente
+    const data = response.data || response;
     
     // La respuesta tiene token y refreshToken
     const token = data.token;
     const refresh = data.refreshToken;
     
     if (!token) {
+      console.error('Response structure:', response);
       throw new Error('No se recibió token de autenticación');
     }
     
