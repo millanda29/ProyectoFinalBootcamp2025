@@ -1,93 +1,191 @@
 # 🌍 TravelMate – Asistente Inteligente de Viajes
+**Desarrollado por:** [Tu Nombre]  
+**Módulo:** Módulo IV - DevOps  
+**Bootcamp de Programación 2025**
 
-![TravelMate Banner](https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80)  
+![TravelMate Banner](https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80)
 
-**Descripción general:**  
-TravelMate es una plataforma web que ayuda a planificar viajes de manera rápida, económica y personalizada. Permite crear itinerarios inteligentes, estimar presupuestos y recibir recomendaciones de hospedaje, transporte y actividades. ✈️🏨🗺️
+## 📝 Descripción General
 
-**👤 Usuario final:**  
-Personas que quieren organizar sus viajes sin perder tiempo y ajustándose a su presupuesto.
+TravelMate es una aplicación web completa construida con el stack MERN que ayuda a los usuarios a planificar viajes de manera inteligente y personalizada. La aplicación utiliza inteligencia artificial (OpenAI GPT-4o-mini) para generar itinerarios personalizados, calcular presupuestos detallados y proporcionar recomendaciones de hospedaje, transporte y actividades. Los usuarios pueden chatear con un asistente de IA, gestionar sus viajes, generar reportes PDF y administrar su perfil, mientras que los administradores tienen acceso a un panel completo de gestión de usuarios y estadísticas.
 
----
+## 🛠️ Tecnologías Utilizadas
 
-## 🛠️ Tecnologías y Herramientas
+### Frontend:
+- **React 19.1.1** - Biblioteca principal para la interfaz de usuario
+- **Vite** - Herramienta de desarrollo y build
+- **React Router DOM** - Navegación y enrutamiento
+- **Tailwind CSS** - Framework de CSS para estilos
+- **Lucide React** - Iconografía moderna
 
-### 🖥️ Frontend
-- [![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)  
-- [![Vite](https://img.shields.io/badge/Vite-C13584?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)  
-- [![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
+### Backend:
+- **Node.js** - Entorno de ejecución de JavaScript
+- **Express.js** - Framework web para Node.js
+- **MongoDB** - Base de datos NoSQL
+- **MongoDB Atlas** - Servicio en la nube de MongoDB
 
-### 🖥️ Backend
-- [![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)  
-- [![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)  
-- [![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)  
-- [![MongoDB Atlas](https://img.shields.io/badge/MongoDB_Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/cloud/atlas)
+### Integraciones y Servicios:
+- **OpenAI API (GPT-4o-mini)** - Inteligencia artificial para chat y generación de itinerarios
+- **JWT (JSON Web Tokens)** - Autenticación y autorización
+- **Puppeteer** - Generación de reportes PDF
+- **Winston** - Sistema de logging avanzado
+- **Bcrypt** - Encriptación de contraseñas
 
-### 🔗 Integraciones
-- [![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com/) – ChatBot inteligente y generación de itinerarios.  
-- 🗺️ **APIs de mapas / turismo (opcional)** – Google Maps, TripAdvisor  
+### Plataformas de Despliegue:
+- **Render** - Despliegue del backend (Web Service)
+- **Vercel** - Despliegue del frontend (Static Site)
 
-### 🧰 Control de versiones y despliegue
-- [![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)](https://git-scm.com/)  
-- [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/)  
-- [![Render](https://img.shields.io/badge/Render-0AB27C?style=for-the-badge&logo=render&logoColor=white)](https://render.com/)  
-- [![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
+## � Instrucciones para Ejecutar Localmente
 
----
+### Requisitos Previos
+- Node.js v16 o superior
+- MongoDB (local) o cuenta de MongoDB Atlas
+- Git
 
-## 📂 Estructura del Proyecto
-
-```
-
-ProyectoFinalBootcamp/
-├── client/     # 🖥️ Frontend React
-├── server/     # 🟢 Backend Node.js + Express
-├── db/         # 📁 Base de datos / colecciones
-└── README.md   # 📖 Este documento
-
-````
-
----
-
-## 🚀 Clonar el Repositorio y Configurar Proyecto
-
-1. Clona el repositorio completo:
-
+### Paso 1: Clonar el Repositorio
 ```bash
 git clone https://github.com/millanda29/ProyectoFinalBootcamp2025.git
-````
-
-2. Ingresa al directorio del proyecto:
-
-```bash
 cd ProyectoFinalBootcamp2025
 ```
 
-3. Instala dependencias del backend:
-
+### Paso 2: Configurar el Backend
 ```bash
 cd server
 npm install
 ```
 
-4. Instala dependencias del frontend:
+Crea un archivo `.env` en la carpeta `server` con las siguientes variables:
+```env
+# Base de datos
+MONGO_URI=tu_uri_de_mongodb_atlas
 
+# Servidor
+PORT=5000
+
+# JWT
+JWT_SECRET=tu_jwt_secret_muy_seguro
+
+# OpenAI
+OPENAI_API_KEY=tu_api_key_de_openai
+
+# CORS
+CLIENT_URL=http://localhost:5173
+```
+
+### Paso 3: Configurar el Frontend
 ```bash
-cd client
+cd ../client
 npm install
 ```
 
-> ✅ Con esto tendrás tanto **frontend** como **backend** listos para desarrollo.
+### Paso 4: Ejecutar la Aplicación
+**Terminal 1 - Backend:**
+```bash
+cd server
+npm run dev
+```
+
+**Terminal 2 - Frontend:**
+```bash
+cd client
+npm run dev
+```
+
+La aplicación estará disponible en:
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:5000`
+
+## 🚀 Proceso de Despliegue
+
+### Estrategia de Despliegue
+Dividí la aplicación en dos partes independientes para optimizar el despliegue:
+
+**Frontend (Vercel):**
+1. Configuré el build de producción:
+   ```bash
+   npm run build
+   ```
+2. Subí el proyecto a Vercel como Static Site
+3. Configuré las variables de entorno necesarias
+4. Conecté el repositorio de GitHub para despliegue automático
+
+**Backend (Render):**
+1. Configuré un Web Service en Render
+2. Especifiqué el comando de inicio: `node index.js`
+3. Agregué todas las variables de entorno:
+   - MONGO_URI (conexión a MongoDB Atlas)
+   - JWT_SECRET y JWT_REFRESH_SECRET
+   - OPENAI_API_KEY
+   - CLIENT_URL (URL del frontend desplegado)
+4. Conecté el repositorio para despliegue automático
+
+### 🌐 Enlaces de la Aplicación Desplegada
+- **Frontend:** [Agrega aquí tu URL de Vercel]
+- **Backend API:** [Agrega aquí tu URL de Render]
+
+## � Desafíos y Soluciones
+
+### Desafío 1: Configuración de CORS
+**Problema:** El frontend desplegado no podía comunicarse con el backend debido a errores de CORS.
+**Solución:** Configuré correctamente las políticas CORS en Express especificando la URL exacta del frontend desplegado en la variable `CLIENT_URL`.
+
+### Desafío 2: Variables de Entorno en Producción
+**Problema:** La aplicación fallaba en producción porque las variables de entorno no estaban correctamente configuradas.
+**Solución:** Documenté todas las variables necesarias y las configuré tanto en Render (backend) como en Vercel (frontend), asegurándome de que las URLs de producción fueran correctas.
+
+### Desafío 3: Gestión de Estados de Autenticación
+**Problema:** Los tokens JWT se perdían al refrescar la página en producción.
+**Solución:** Implementé un sistema de refresh tokens y configuré correctamente el almacenamiento en cookies con configuraciones seguras para producción.
+
+## 📂 Estructura del Proyecto
+
+```
+ProyectoFinalBootcamp/
+├── client/                 # 🖥️ Frontend React + Vite
+│   ├── src/
+│   │   ├── components/     # Componentes reutilizables
+│   │   ├── pages/         # Páginas principales
+│   │   ├── context/       # Context API para estado global
+│   │   ├── data/          # APIs y servicios
+│   │   └── lib/           # Utilidades
+│   ├── public/            # Assets estáticos
+│   └── package.json
+├── server/                # 🟢 Backend Node.js + Express
+│   ├── src/
+│   │   ├── controllers/   # Lógica de controladores
+│   │   ├── models/        # Modelos de MongoDB
+│   │   ├── routers/       # Rutas de la API
+│   │   ├── services/      # Servicios de negocio
+│   │   ├── auth/          # Sistema de autenticación
+│   │   └── utils/         # Utilidades del servidor
+│   └── package.json
+├── db/                    # 📁 Configuración de base de datos
+└── README.md             # 📖 Este documento
+```
+
+## 📖 Documentación Adicional
+
+* **Servidor:** Para información detallada del backend, revisa el [README del server](server/README.md)
+* **Cliente:** Para información detallada del frontend, revisa el [README del cliente](client/README.md)
+* **API Endpoints:** Documentación completa disponible en `/api/endpoints` cuando el servidor está ejecutándose
 
 ---
 
-## 📖 Documentación específica
+## 🎯 Funcionalidades Principales
 
-* Para más información sobre el **servidor**, revisa el [README del server](server/README.md).
-* Para más información sobre el **cliente**, revisa el [README del cliente](client/README.md).
+- ✅ **Autenticación JWT** con refresh tokens
+- ✅ **Chat con IA** para planificación de viajes
+- ✅ **Generación de itinerarios** personalizados
+- ✅ **Gestión de presupuestos** automática
+- ✅ **Reportes PDF** exportables
+- ✅ **Panel de administración** completo
+- ✅ **Eliminación lógica** de datos
+- ✅ **Sistema de roles** (admin/traveler)
+- ✅ **Diseño responsivo** para todos los dispositivos
 
 ---
 
-> Este README sirve como guía rápida del proyecto, instalación completa y referencia de tecnologías principales.
-> ¡Explora cada carpeta para más detalles! 📁✨
+> **TravelMate** - Tu compañero inteligente para planificar viajes extraordinarios ✈️🌍
+> 
+> *Desarrollado como proyecto final del Bootcamp de Programación - Módulo IV DevOps*
 
