@@ -1,5 +1,4 @@
-import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -21,12 +20,10 @@ const reportService = {
       // Generar el HTML del reporte
       const html = this.generateTripHTML(trip, user);
 
-      // Lanzar Chromium compatible con Render
+      // Lanzar Puppeteer con Chromium incluido
       const browser = await puppeteer.launch({
-        args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
       });
 
       const page = await browser.newPage();
@@ -75,142 +72,26 @@ const reportService = {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Reporte de Viaje - ${trip.title}</title>
       <style>
-        body {
-          font-family: 'Arial', sans-serif;
-          line-height: 1.6;
-          color: #333;
-          margin: 0;
-          padding: 0;
-        }
-        
-        .header {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          padding: 30px;
-          text-align: center;
-          margin-bottom: 30px;
-        }
-        
-        .header h1 {
-          margin: 0;
-          font-size: 2.5em;
-          font-weight: 300;
-        }
-        
-        .header p {
-          margin: 10px 0 0 0;
-          opacity: 0.9;
-          font-size: 1.1em;
-        }
-        
-        .container {
-          max-width: 800px;
-          margin: 0 auto;
-          padding: 0 20px;
-        }
-        
-        .info-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20px;
-          margin-bottom: 30px;
-        }
-        
-        .info-card {
-          background: #f8f9fa;
-          padding: 20px;
-          border-radius: 8px;
-          border-left: 4px solid #667eea;
-        }
-        
-        .info-card h3 {
-          margin: 0 0 10px 0;
-          color: #667eea;
-          font-size: 1.2em;
-        }
-        
-        .section {
-          margin-bottom: 40px;
-        }
-        
-        .section h2 {
-          color: #333;
-          border-bottom: 2px solid #667eea;
-          padding-bottom: 10px;
-          margin-bottom: 20px;
-        }
-        
-        .day-card {
-          background: white;
-          border: 1px solid #e9ecef;
-          border-radius: 8px;
-          padding: 20px;
-          margin-bottom: 20px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .day-header {
-          background: #667eea;
-          color: white;
-          padding: 10px 15px;
-          margin: -20px -20px 15px -20px;
-          border-radius: 8px 8px 0 0;
-          font-weight: bold;
-        }
-        
-        .activity {
-          background: #f8f9fa;
-          padding: 15px;
-          margin-bottom: 10px;
-          border-radius: 6px;
-          border-left: 4px solid #28a745;
-        }
-        
-        .costs-table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-top: 15px;
-        }
-        
-        .costs-table th,
-        .costs-table td {
-          padding: 12px;
-          text-align: left;
-          border-bottom: 1px solid #ddd;
-        }
-        
-        .costs-table th {
-          background: #667eea;
-          color: white;
-          font-weight: bold;
-        }
-        
-        .total-row {
-          background: #e8f4f8 !important;
-          font-weight: bold;
-          border-top: 2px solid #667eea;
-        }
-        
-        .footer {
-          text-align: center;
-          margin-top: 40px;
-          padding: 20px;
-          background: #f8f9fa;
-          border-radius: 8px;
-          color: #666;
-        }
-        
-        .generated-info {
-          font-size: 0.9em;
-          color: #888;
-          margin-top: 20px;
-        }
-        
-        @media print {
-          .day-card {
-            break-inside: avoid;
-          }
-        }
+        body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; margin-bottom: 30px; }
+        .header h1 { margin: 0; font-size: 2.5em; font-weight: 300; }
+        .header p { margin: 10px 0 0 0; opacity: 0.9; font-size: 1.1em; }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .info-card { background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea; }
+        .info-card h3 { margin: 0 0 10px 0; color: #667eea; font-size: 1.2em; }
+        .section { margin-bottom: 40px; }
+        .section h2 { color: #333; border-bottom: 2px solid #667eea; padding-bottom: 10px; margin-bottom: 20px; }
+        .day-card { background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .day-header { background: #667eea; color: white; padding: 10px 15px; margin: -20px -20px 15px -20px; border-radius: 8px 8px 0 0; font-weight: bold; }
+        .activity { background: #f8f9fa; padding: 15px; margin-bottom: 10px; border-radius: 6px; border-left: 4px solid #28a745; }
+        .costs-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .costs-table th, .costs-table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        .costs-table th { background: #667eea; color: white; font-weight: bold; }
+        .total-row { background: #e8f4f8 !important; font-weight: bold; border-top: 2px solid #667eea; }
+        .footer { text-align: center; margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 8px; color: #666; }
+        .generated-info { font-size: 0.9em; color: #888; margin-top: 20px; }
+        @media print { .day-card { break-inside: avoid; } }
       </style>
     </head>
     <body>
@@ -218,59 +99,45 @@ const reportService = {
         <h1>🌟 ${trip.title}</h1>
         <p>Reporte de Viaje Generado por TravelMate</p>
       </div>
-      
       <div class="container">
         <div class="info-grid">
           <div class="info-card">
             <h3>📍 Destino</h3>
             <p><strong>${trip.destination}</strong></p>
           </div>
-          
           <div class="info-card">
             <h3>📅 Fechas</h3>
             <p><strong>Inicio:</strong> ${startDate}</p>
             <p><strong>Fin:</strong> ${endDate}</p>
           </div>
-          
           <div class="info-card">
             <h3>👥 Viajeros</h3>
             <p><strong>${trip.partySize} persona(s)</strong></p>
           </div>
-          
           <div class="info-card">
             <h3>💰 Presupuesto Total</h3>
             <p><strong>$${totalBudget.toFixed(2)} USD</strong></p>
           </div>
         </div>
-        
-        ${trip.itinerary && trip.itinerary.length > 0 ? `
+
+        ${trip.itinerary?.length ? `
         <div class="section">
           <h2>📋 Itinerario Detallado</h2>
           ${trip.itinerary.map(day => `
             <div class="day-card">
               <div class="day-header">Día ${day.dayNumber}</div>
               ${day.notes ? `<p><em>${day.notes}</em></p>` : ''}
-              ${day.activities && day.activities.length > 0 ? 
-                day.activities.map(activity => `
-                  <div class="activity">
-                    <h4>${activity.title}</h4>
-                    ${activity.startTime || activity.endTime ? 
-                      `<div class="activity-meta">
-                        ${activity.startTime ? `🕐 ${activity.startTime}` : ''} 
-                        ${activity.endTime ? `- ${activity.endTime}` : ''}
-                      </div>` : ''
-                    }
-                    ${activity.location ? `<div class="activity-meta">📍 ${activity.location}</div>` : ''}
-                    ${activity.category ? `<div class="activity-meta">🏷️ ${activity.category}</div>` : ''}
-                  </div>
-                `).join('') : '<p><em>No hay actividades programadas</em></p>'
-              }
-            </div>
-          `).join('')}
-        </div>
-        ` : ''}
-        
-        ${trip.costs && trip.costs.length > 0 ? `
+              ${day.activities?.length ? day.activities.map(activity => `
+                <div class="activity">
+                  <h4>${activity.title}</h4>
+                  ${activity.startTime || activity.endTime ? `<div class="activity-meta">${activity.startTime ? `🕐 ${activity.startTime}` : ''}${activity.endTime ? ` - ${activity.endTime}` : ''}</div>` : ''}
+                  ${activity.location ? `<div class="activity-meta">📍 ${activity.location}</div>` : ''}
+                  ${activity.category ? `<div class="activity-meta">🏷️ ${activity.category}</div>` : ''}
+                </div>`).join('') : '<p><em>No hay actividades programadas</em></p>'}
+            </div>`).join('')}
+        </div>` : ''}
+
+        ${trip.costs?.length ? `
         <div class="section">
           <h2>💳 Desglose de Costos</h2>
           <table class="costs-table">
@@ -291,17 +158,15 @@ const reportService = {
                   <td>${cost.quantity}</td>
                   <td>$${cost.amount.toFixed(2)} ${cost.currency}</td>
                   <td>$${(cost.amount * cost.quantity).toFixed(2)} ${cost.currency}</td>
-                </tr>
-              `).join('')}
+                </tr>`).join('')}
               <tr class="total-row">
                 <td colspan="4"><strong>TOTAL GENERAL</strong></td>
                 <td><strong>$${totalBudget.toFixed(2)} USD</strong></td>
               </tr>
             </tbody>
           </table>
-        </div>
-        ` : ''}
-        
+        </div>` : ''}
+
         <div class="footer">
           <p>¡Que tengas un excelente viaje! 🧳✈️</p>
           <div class="generated-info">
@@ -311,16 +176,15 @@ const reportService = {
         </div>
       </div>
     </body>
-    </html>
-    `;
+    </html>`;
   },
 
   translateCostType(type) {
     const translations = {
-      'lodging': '🏨 Alojamiento',
-      'transport': '🚗 Transporte', 
-      'activity': '🎯 Actividad',
-      'other': '📦 Otros'
+      lodging: '🏨 Alojamiento',
+      transport: '🚗 Transporte',
+      activity: '🎯 Actividad',
+      other: '📦 Otros'
     };
     return translations[type] || type;
   },
@@ -342,10 +206,10 @@ const reportService = {
       const reportsDir = path.join(process.cwd(), 'reports');
       const files = await fs.readdir(reportsDir);
       const pdfFiles = files.filter(file => file.endsWith('.pdf'));
-      
+
       const validFiles = existingReports.map(report => path.basename(report.fileUrl));
       const orphanedFiles = pdfFiles.filter(file => !validFiles.includes(file));
-      
+
       let deletedCount = 0;
       for (const file of orphanedFiles) {
         try {
@@ -355,7 +219,6 @@ const reportService = {
           console.warn(`⚠️ No se pudo eliminar PDF huérfano: ${file}`, error.message);
         }
       }
-      
       return deletedCount;
     } catch (error) {
       console.error('Error durante la limpieza de PDFs:', error);
