@@ -273,6 +273,23 @@ const Profile = () => {
     privacy: 'Público'
   })
 
+  // Estados para cambio de contraseña
+  const [showPasswordChange, setShowPasswordChange] = useState(false)
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
+  const [passwordErrors, setPasswordErrors] = useState({})
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
+
+  // Estados para eliminación de cuenta
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false)
+  const [deletionScheduled, setDeletionScheduled] = useState(null) // { scheduledAt, expiresAt }
+  const [isCancelingDeletion, setIsCancelingDeletion] = useState(false)
+
   // Cargar perfil al montar el componente
   useEffect(() => {
     const loadData = async () => {
@@ -316,6 +333,16 @@ const Profile = () => {
           newsletter: userData.notifications?.promotions || false,
           privacy: 'Público'
         })
+
+        // Verificar si hay eliminación programada
+        if (userData.deletionScheduled && userData.deletionScheduled.expiresAt) {
+          setDeletionScheduled({
+            scheduledAt: userData.deletionScheduled.scheduledAt,
+            expiresAt: userData.deletionScheduled.expiresAt
+          })
+        } else {
+          setDeletionScheduled(null)
+        }
         
         setIsLoading(false)
         return
@@ -357,6 +384,16 @@ const Profile = () => {
           newsletter: profile.notifications?.promotions || false,
           privacy: 'Público'
         })
+
+        // Verificar si hay eliminación programada
+        if (profile.deletionScheduled && profile.deletionScheduled.expiresAt) {
+          setDeletionScheduled({
+            scheduledAt: profile.deletionScheduled.scheduledAt,
+            expiresAt: profile.deletionScheduled.expiresAt
+          })
+        } else {
+          setDeletionScheduled(null)
+        }
       } catch (error) {
         console.error('Error loading profile:', error)
         utils.showError(error)
@@ -431,6 +468,132 @@ const Profile = () => {
   const handleCancel = () => {
     setIsEditing(false)
     // Aquí podrías revertir los cambios si lo deseas
+  }
+
+  // Función para cambiar contraseña
+  const handlePasswordChange = async () => {
+    // Validaciones
+    const newPasswordErrors = {}
+    
+    if (!passwordData.currentPassword) {
+      newPasswordErrors.currentPassword = 'Contraseña actual requerida'
+    }
+    
+    if (!passwordData.newPassword) {
+      newPasswordErrors.newPassword = 'Nueva contraseña requerida'
+    } else if (passwordData.newPassword.length < 6) {
+      newPasswordErrors.newPassword = 'La contraseña debe tener al menos 6 caracteres'
+    }
+    
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      newPasswordErrors.confirmPassword = 'Las contraseñas no coinciden'
+    }
+    
+    if (passwordData.currentPassword === passwordData.newPassword) {
+      newPasswordErrors.newPassword = 'La nueva contraseña debe ser diferente a la actual'
+    }
+
+    if (Object.keys(newPasswordErrors).length > 0) {
+      setPasswordErrors(newPasswordErrors)
+      return
+    }
+
+    setIsChangingPassword(true)
+    setPasswordErrors({})
+
+    try {
+      await api.users.changePassword(accessToken, {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      })
+      
+      utils.showSuccess('Contraseña cambiada exitosamente')
+      setShowPasswordChange(false)
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      })
+    } catch (error) {
+      console.error('Error changing password:', error)
+      utils.showError(error.message || 'Error al cambiar la contraseña')
+    } finally {
+      setIsChangingPassword(false)
+    }
+  }
+
+  // Función para programar eliminación de cuenta
+  const handleDeleteAccount = async () => {
+    if (!deletePassword) {
+      utils.showError('Debes confirmar tu contraseña para programar la eliminación')
+      return
+    }
+
+    const confirmMessage = `¿Estás seguro de que quieres programar la eliminación de tu cuenta?
+
+⚠️ INFORMACIÓN IMPORTANTE:
+• Tu cuenta será marcada para eliminación
+• Tendrás 30 días para cancelar esta acción
+• Durante estos 30 días podrás acceder y cancelar la eliminación
+• Después de 30 días, tu cuenta será eliminada permanentemente
+
+¿Deseas continuar?`
+
+    if (!window.confirm(confirmMessage)) {
+      return
+    }
+
+    setIsDeletingAccount(true)
+
+    try {
+      // Usar la razón por defecto o permitir que el usuario la especifique
+      const reason = 'Usuario solicitó eliminación de cuenta'
+      await api.users.scheduleAccountDeletion(accessToken, reason)
+      
+      utils.showSuccess('Eliminación programada exitosamente. Tienes 30 días para cancelar esta acción desde tu perfil.')
+      
+      setShowDeleteConfirm(false)
+      setDeletePassword('')
+      
+      // Recargar el perfil para mostrar el estado de eliminación programada
+      window.location.reload()
+    } catch (error) {
+      console.error('Error scheduling account deletion:', error)
+      utils.showError(error.message || 'Error al programar la eliminación de la cuenta')
+      setDeletePassword('')
+    } finally {
+      setIsDeletingAccount(false)
+    }
+  }
+
+  // Función para cancelar eliminación programada
+  const handleCancelDeletion = async () => {
+    if (!window.confirm('¿Estás seguro de que quieres cancelar la eliminación programada de tu cuenta?')) {
+      return
+    }
+
+    setIsCancelingDeletion(true)
+
+    try {
+      await api.users.cancelAccountDeletion(accessToken)
+      utils.showSuccess('Eliminación de cuenta cancelada exitosamente')
+      setDeletionScheduled(null)
+      
+      // Recargar el perfil para actualizar el estado
+      window.location.reload()
+    } catch (error) {
+      console.error('Error canceling account deletion:', error)
+      
+      // Si el error es que no hay eliminación programada, actualizar el estado
+      if (error.message && error.message.includes('ninguna eliminación programada')) {
+        setDeletionScheduled(null)
+        utils.showError('No hay eliminación programada para cancelar')
+      } else {
+        utils.showError(error.message || 'Error al cancelar la eliminación de la cuenta')
+      }
+    } finally {
+      setIsCancelingDeletion(false)
+    }
   }
 
   const handleInputChange = (field, value) => {
@@ -761,20 +924,252 @@ const Profile = () => {
                 </div>
               </div>
 
+              {/* Estado de eliminación programada */}
+              {deletionScheduled && deletionScheduled.expiresAt && (() => {
+                const expirationDate = new Date(deletionScheduled.expiresAt)
+                const now = new Date()
+                const daysRemaining = Math.ceil((expirationDate - now) / (1000 * 60 * 60 * 24))
+                
+                // Verificar que las fechas sean válidas
+                if (isNaN(expirationDate.getTime()) || isNaN(daysRemaining)) {
+                  return null
+                }
+                
+                return (
+                  <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                      <div className="flex-1">
+                        <h4 className="font-medium text-orange-800">Eliminación Programada</h4>
+                        <p className="text-sm text-orange-700 mt-1">
+                          Tu cuenta será eliminada el {expirationDate.toLocaleDateString('es-ES', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}. 
+                          Tienes {daysRemaining > 0 ? daysRemaining : 0} días para cancelar.
+                        </p>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="mt-2 text-orange-600 border-orange-300 hover:bg-orange-100"
+                          onClick={handleCancelDeletion}
+                          disabled={isCancelingDeletion}
+                        >
+                          {isCancelingDeletion ? (
+                            <>
+                              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                              Cancelando...
+                            </>
+                          ) : (
+                            'Cancelar Eliminación'
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
+
               <div className="pt-4 space-y-2">
-                <Button variant="outline" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => setShowPasswordChange(true)}
+                >
                   <Shield className="w-4 h-4 mr-2" />
                   Cambiar contraseña
                 </Button>
-                <Button variant="outline" className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50">
-                  <X className="w-4 h-4 mr-2" />
-                  Eliminar cuenta
-                </Button>
+                {!deletionScheduled && (
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                    onClick={() => setShowDeleteConfirm(true)}
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Programar eliminación
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
 
         </div>
+
+        {/* Modal para cambio de contraseña */}
+      {showPasswordChange && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Cambiar Contraseña</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowPasswordChange(false)
+                    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
+                    setPasswordErrors({})
+                  }}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="currentPassword">Contraseña actual</Label>
+                  <Input
+                    id="currentPassword"
+                    type="password"
+                    value={passwordData.currentPassword}
+                    onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                    className={passwordErrors.currentPassword ? 'border-red-500' : ''}
+                  />
+                  {passwordErrors.currentPassword && (
+                    <p className="text-red-500 text-sm mt-1">{passwordErrors.currentPassword}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <Label htmlFor="newPassword">Nueva contraseña</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={passwordData.newPassword}
+                    onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                    className={passwordErrors.newPassword ? 'border-red-500' : ''}
+                  />
+                  {passwordErrors.newPassword && (
+                    <p className="text-red-500 text-sm mt-1">{passwordErrors.newPassword}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <Label htmlFor="confirmPassword">Confirmar nueva contraseña</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    className={passwordErrors.confirmPassword ? 'border-red-500' : ''}
+                  />
+                  {passwordErrors.confirmPassword && (
+                    <p className="text-red-500 text-sm mt-1">{passwordErrors.confirmPassword}</p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex gap-3 mt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowPasswordChange(false)
+                    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
+                    setPasswordErrors({})
+                  }}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handlePasswordChange}
+                  disabled={isChangingPassword}
+                  className="flex-1"
+                >
+                  {isChangingPassword ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Cambiando...
+                    </>
+                  ) : (
+                    'Cambiar Contraseña'
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para eliminar cuenta */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-orange-600">Programar Eliminación</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowDeleteConfirm(false)
+                    setDeletePassword('')
+                  }}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-orange-800">Proceso de Eliminación</h4>
+                      <div className="text-sm text-orange-700 mt-2 space-y-1">
+                        <p>• Tu cuenta será <strong>marcada para eliminación</strong></p>
+                        <p>• Tendrás <strong>30 días</strong> para cancelar esta acción</p>
+                        <p>• Durante este período podrás seguir accediendo normalmente</p>
+                        <p>• Después de 30 días, la eliminación será <strong>permanente</strong></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="deletePassword">Confirma tu contraseña para programar eliminación</Label>
+                  <Input
+                    id="deletePassword"
+                    type="password"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    placeholder="Ingresa tu contraseña actual"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-3 mt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowDeleteConfirm(false)
+                    setDeletePassword('')
+                  }}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+                  onClick={handleDeleteAccount}
+                  disabled={isDeletingAccount || !deletePassword}
+                >
+                  {isDeletingAccount ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Programando...
+                    </>
+                  ) : (
+                    'Programar Eliminación'
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+        )}
+
       </div>
       )}
     </div>

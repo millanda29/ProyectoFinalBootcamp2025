@@ -38,7 +38,6 @@ const Admin = () => {
   useEffect(() => {
     const loadAdminData = async () => {
       if (!accessToken || !user || !user.roles?.includes('admin')) {
-        console.log('❌ Admin: Sin permisos para cargar datos admin', { user: user?.email, roles: user?.roles })
         setLoading(false)
         return
       }
@@ -105,7 +104,6 @@ const Admin = () => {
 
   // ✅ Protección de ruta - Solo admins pueden acceder
   if (!authLoading && (!user || !user.roles?.includes('admin'))) {
-    console.log('❌ Admin: Usuario no autorizado, redirigiendo...', { user: user?.email, roles: user?.roles })
     return <Navigate to="/dashboard" replace />
   }
 

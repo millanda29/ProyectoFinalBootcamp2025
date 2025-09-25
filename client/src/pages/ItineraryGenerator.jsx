@@ -73,9 +73,7 @@ const ItineraryGenerator = () => {
         interests: formData.interests
       }
 
-      console.log('Sending itinerary data:', itineraryData)
       const response = await api.chat.generateBasicItinerary(accessToken, itineraryData)
-      console.log('Received response:', response)
       
       // Manejar la respuesta de la API correctamente
       let itineraryResult = null
@@ -91,7 +89,6 @@ const ItineraryGenerator = () => {
         itineraryResult = response
       }
       
-      console.log('Setting itinerary result:', itineraryResult)
       setGeneratedItinerary(itineraryResult)
       utils.showSuccess('¡Itinerario generado exitosamente!')
     } catch (error) {
@@ -202,9 +199,7 @@ const ItineraryGenerator = () => {
         status: 'planned'
       }
 
-      console.log('Creating complete trip with data:', tripData)
-      const tripResponse = await api.trips.createTrip(accessToken, tripData)
-      console.log('Trip created successfully:', tripResponse)
+      await api.trips.createTrip(accessToken, tripData)
 
       utils.showSuccess('¡Itinerario guardado como viaje!')
       

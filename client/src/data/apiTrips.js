@@ -162,7 +162,20 @@ export const cancelTrip = async (token, tripId) => {
   return handleResponse(res, "Failed to cancel trip");
 };
 
+// 🔹 Generar reporte PDF (crear el archivo en el servidor)
+// ⚠️  USO INTERNO: Usar generateAndDownloadPDF() en su lugar para evitar múltiples reportes
 export const generateReport = async (token, tripId) => {
+  const res = await fetch(`${API_URL}/${tripId}/report`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${token}` },
+    credentials: "include"
+  });
+  return handleResponse(res, "Failed to generate report");
+};
+
+// 🔹 Descargar PDF existente
+// ⚠️  USO INTERNO: Usar generateAndDownloadPDF() en su lugar
+export const downloadPDF = async (token, tripId) => {
   const res = await fetch(`${API_URL}/${tripId}/pdf`, {
     headers: { "Authorization": `Bearer ${token}` },
     credentials: "include"
@@ -174,6 +187,27 @@ export const generateReport = async (token, tripId) => {
   
   // Retornar el blob directamente para PDF
   return await res.blob();
+};
+
+// 🔹 ✅ FUNCIÓN RECOMENDADA: Descargar PDF (genera solo si no existe)
+export const generateAndDownloadPDF = async (token, tripId) => {
+  try {
+    // Primero intentar descargar PDF existente
+    try {
+      return await downloadPDF(token, tripId);
+    } catch (downloadError) {
+      // Si falla la descarga (404 = no existe), generar nuevo reporte
+      if (downloadError.message.includes('404')) {
+        await generateReport(token, tripId);
+        return await downloadPDF(token, tripId);
+      } else {
+        // Si es otro error, propagar
+        throw downloadError;
+      }
+    }
+  } catch (error) {
+    throw new Error(`Error accessing PDF: ${error.message}`);
+  }
 };
 
 export const exportTrip = async (token, tripId, format = 'json') => {
@@ -191,6 +225,28 @@ export const getTripReports = async (token, tripId) => {
     credentials: "include"
   });
   return handleResponse(res, "Failed to get trip reports");
+};
+
+// 🔹 Verificar si existe un PDF sin descargarlo
+export const checkPDFExists = async (token, tripId) => {
+  try {
+    const res = await fetch(`${API_URL}/${tripId}/pdf`, {
+      method: 'HEAD', // Solo headers, no descargar el contenido
+      headers: { "Authorization": `Bearer ${token}` },
+      credentials: "include"
+    });
+    
+    // 200 = existe, 404 = no existe, otros = error
+    if (res.status === 200) {
+      return true;
+    } else if (res.status === 404) {
+      return false; // No existe, no es un error real
+    } else {
+      return false; // Otros errores, asumir que no existe
+    }
+  } catch {
+    return false; // Error de red o similar, asumir que no existe
+  }
 };
 
 export const servePDF = async (token, tripId) => {
