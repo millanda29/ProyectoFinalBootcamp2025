@@ -203,12 +203,12 @@ export const tripsAPI = {
   duplicateTrip: (token, tripId, newTripData) => trips.duplicateTrip(token, tripId, newTripData),
   markTripCompleted: (token, tripId) => trips.markTripCompleted(token, tripId),
   cancelTrip: (token, tripId) => trips.cancelTrip(token, tripId),
-  generatePdfReport: (token, tripId) => trips.generatePdfReport(token, tripId),
-  createTripReport: (token, tripId) => trips.createTripReport(token, tripId),
+  generateAndDownloadPDF: (token, tripId) => trips.generateAndDownloadPDF(token, tripId),
   exportTrip: (token, tripId, format) => trips.exportTrip(token, tripId, format),
   
   // Report management
   getTripReports: (token, tripId) => trips.getTripReports(token, tripId),
+  checkPDFExists: (token, tripId) => trips.checkPDFExists(token, tripId),
   servePDF: (token, tripId) => trips.servePDF(token, tripId),
   
   // Admin functions

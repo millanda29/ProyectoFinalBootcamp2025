@@ -57,12 +57,9 @@ const AuthProvider = ({ children }) => {
             const userData = extractUserData(userProfileResponse);
             if (userData) {
               setUser(userData);
-            } else {
-              console.log('❌ AuthProvider: No se pudo extraer datos de usuario');
             }
           } catch (error) {
             console.error('❌ AuthProvider: Failed to load user profile on init:', error);
-            console.log('🔍 AuthProvider: Token usado:', localToken?.substring(0, 20) + '...');
             // Si falla cargar el perfil, mantener el token pero sin datos de usuario
           }
           

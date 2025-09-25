@@ -6,7 +6,7 @@ import { Badge } from '../components/ui/badge'
 import { 
   MapPin, Calendar, DollarSign, Users, ArrowLeft, Download, Edit, 
   Clock, Plane, Hotel, Utensils, Car, Camera, Star,
-  MessageCircle, Share2, Trash2, Loader2, Eye
+  MessageCircle, Share2, Trash2, Loader2, Eye, CheckCircle
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import api, { utils } from '../data/api.js'
@@ -18,6 +18,8 @@ const TripDetails = () => {
   const [trip, setTrip] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [pdfExists, setPdfExists] = useState(false)
+  const [checkingPDF, setCheckingPDF] = useState(false)
 
   useEffect(() => {
     const loadTripDetails = async () => {
@@ -28,11 +30,23 @@ const TripDetails = () => {
 
       try {
         setLoading(true)
+        
         // ✅ Usar el endpoint específico para obtener un viaje por ID
         const response = await api.trips.getTripById(accessToken, tripId)
         
         if (response.success && response.data) {
           setTrip(response.data)
+          
+          // ✅ Verificar si ya existe un PDF para este viaje
+          setCheckingPDF(true)
+          try {
+            const pdfExists = await api.trips.checkPDFExists(accessToken, tripId)
+            setPdfExists(pdfExists)
+          } catch {
+            setPdfExists(false)
+          } finally {
+            setCheckingPDF(false)
+          }
         } else {
           setError('Viaje no encontrado')
         }
@@ -85,10 +99,12 @@ const TripDetails = () => {
     }
   }
 
-  const handleExportPDF = async () => {
+  const handleGenerateAndDownloadPDF = async () => {
     try {
-      // Usar la función de la API para descargar PDF
-      const pdfBlob = await api.trips.generateReport(accessToken, tripId)
+      const wasExisting = pdfExists
+      
+      // ✅ Generar reporte en el servidor Y descargarlo en una sola operación (inteligente)
+      const pdfBlob = await api.trips.generateAndDownloadPDF(accessToken, tripId)
       
       // Verificar que es un blob válido
       if (!pdfBlob || pdfBlob.size === 0) {
@@ -104,25 +120,18 @@ const TripDetails = () => {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
       
-      utils.showSuccess('PDF descargado exitosamente')
+      // Mostrar mensaje apropiado según si ya existía o se generó nuevo
+      if (wasExisting) {
+        utils.showSuccess('PDF descargado exitosamente (usando reporte existente)')
+      } else {
+        utils.showSuccess('PDF generado y descargado exitosamente')
+      }
+      
+      // ✅ Actualizar estado para reflejar que ahora existe el PDF
+      setPdfExists(true)
     } catch (error) {
       console.error('Error exporting PDF:', error)
       utils.showError('Error al descargar el PDF: ' + (error.message || 'Error desconocido'))
-    }
-  }
-
-  const handleGenerateReport = async () => {
-    try {
-      // ✅ Usar la función correcta para generar reporte PDF
-      const response = await api.trips.generateReport(accessToken, tripId)
-      console.log('Report generated:', response)
-      utils.showSuccess('Reporte PDF generado exitosamente')
-      
-      // Opcional: recargar la página para mostrar el nuevo reporte
-      window.location.reload()
-    } catch (error) {
-      console.error('Error generating report:', error)
-      utils.showError('Error al generar el reporte: ' + (error.message || 'Error desconocido'))
     }
   }
 
@@ -138,7 +147,7 @@ const TripDetails = () => {
   const handleDownloadReport = async () => {
     try {
       // Usar la función de descarga de PDF
-      await handleExportPDF()
+      await handleGenerateAndDownloadPDF()
     } catch (error) {
       console.error('Error downloading report:', error)
       utils.showError('Error al descargar el reporte')
@@ -228,13 +237,24 @@ const TripDetails = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleGenerateReport}>
+            {pdfExists && !checkingPDF && (
+              <div className="flex items-center gap-1 text-sm text-green-600 bg-green-50 px-2 py-1 rounded">
+                <CheckCircle className="h-4 w-4" />
+                PDF disponible
+              </div>
+            )}
+            <Button 
+              variant="outline" 
+              onClick={handleGenerateAndDownloadPDF}
+              disabled={checkingPDF}
+            >
               <Download className="h-4 w-4 mr-2" />
-              Generar Reporte
-            </Button>
-            <Button variant="outline" onClick={handleExportPDF}>
-              <Download className="h-4 w-4 mr-2" />
-              Descargar PDF
+              {checkingPDF 
+                ? "Verificando..." 
+                : pdfExists 
+                  ? "Descargar PDF" 
+                  : "Generar y Descargar PDF"
+              }
             </Button>
             <Button variant="outline">
               <Share2 className="h-4 w-4 mr-2" />

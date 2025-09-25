@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Badge } from '../components/ui/badge'
-import { MapPin, Calendar, DollarSign, MessageCircle, Eye, Trash2, Clock, Users, Loader2, Plus, Download, Plane } from 'lucide-react'
+import { MapPin, Calendar, DollarSign, MessageCircle, Eye, Trash2, Clock, Users, Loader2, Plus, Download, Plane, CheckCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import api, { utils } from '../data/api.js'
 
@@ -13,6 +13,23 @@ const Itineraries = () => {
   const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
+  const [pdfStatus, setPdfStatus] = useState({}) // { tripId: { exists: boolean, checking: boolean } }
+  
+  const checkExistingPDFs = useCallback(async (tripsData) => {
+    const newPdfStatus = {}
+    
+    for (const trip of tripsData) {
+      try {
+        const exists = await api.trips.checkPDFExists(accessToken, trip._id)
+        newPdfStatus[trip._id] = { exists, checking: false }
+      } catch {
+        // Si hay error, asumir que no existe
+        newPdfStatus[trip._id] = { exists: false, checking: false }
+      }
+    }
+    
+    setPdfStatus(newPdfStatus)
+  }, [accessToken])
   
   useEffect(() => {
     const loadData = async () => {
@@ -30,6 +47,9 @@ const Itineraries = () => {
         // La respuesta tiene estructura: { success: true, data: [...], pagination: {...} }
         const tripsData = Array.isArray(response.data) ? response.data : []
         setTrips(tripsData)
+        
+        // Verificar qué PDFs ya existen
+        checkExistingPDFs(tripsData)
       } catch (error) {
         console.error('Error loading trips:', error)
         utils.showError(error)
@@ -44,7 +64,7 @@ const Itineraries = () => {
     } else if (!authLoading && !accessToken) {
       setLoading(false)
     }
-  }, [authLoading, accessToken])
+  }, [authLoading, accessToken, checkExistingPDFs])
 
   const handleDeleteTrip = async (tripId) => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar este viaje?')) {
@@ -61,10 +81,16 @@ const Itineraries = () => {
     }
   }
 
-  const handleExportPDF = async (tripId) => {
+  const handleGenerateAndDownloadPDF = async (tripId) => {
     try {
-      // Usar la función de la API para descargar PDF
-      const pdfBlob = await api.trips.generateReport(accessToken, tripId)
+      // Marcar como checking
+      setPdfStatus(prev => ({
+        ...prev,
+        [tripId]: { ...prev[tripId], checking: true }
+      }))
+
+      // ✅ Generar reporte en el servidor Y descargarlo en una sola operación
+      const { pdfBlob, wasExisting } = await api.trips.generateAndDownloadPDF(accessToken, tripId)
       
       // Verificar que es un blob válido
       if (!pdfBlob || pdfBlob.size === 0) {
@@ -81,9 +107,23 @@ const Itineraries = () => {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
       
-      utils.showSuccess('PDF descargado exitosamente')
+      // Actualizar el estado del PDF
+      setPdfStatus(prev => ({
+        ...prev,
+        [tripId]: { exists: true, checking: false }
+      }))
+      
+      const message = wasExisting ? 'PDF descargado exitosamente' : 'PDF generado y descargado exitosamente'
+      utils.showSuccess(message)
     } catch (error) {
       console.error('Error exporting PDF:', error)
+      
+      // Limpiar estado de checking
+      setPdfStatus(prev => ({
+        ...prev,
+        [tripId]: { ...prev[tripId], checking: false }
+      }))
+      
       utils.showError('Error al descargar el PDF: ' + (error.message || 'Error desconocido'))
     }
   }
@@ -253,14 +293,20 @@ const Itineraries = () => {
                       Ver
                     </Button>
                     
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => handleExportPDF(trip._id)}
-                    >
-                      <Download className="h-4 w-4 mr-1" />
-                      PDF
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      {pdfStatus[trip._id]?.exists && !pdfStatus[trip._id]?.checking && (
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                      )}
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleGenerateAndDownloadPDF(trip._id)}
+                        disabled={pdfStatus[trip._id]?.checking}
+                      >
+                        <Download className="h-4 w-4 mr-1" />
+                        {pdfStatus[trip._id]?.checking ? 'Verificando...' : 'PDF'}
+                      </Button>
+                    </div>
                     
                     <Button 
                       size="sm" 

@@ -30,7 +30,7 @@ export function startScheduledDeletionTask() {
       logger.error('Error procesando eliminaciones programadas:', error);
     }
   }, {
-    timezone: "America/Argentina/Buenos_Aires"
+    timezone: "America/Guayaquil"
   });
   
   logger.info('Tarea de eliminaciones programadas iniciada - se ejecutará diariamente a las 2:00 AM');
