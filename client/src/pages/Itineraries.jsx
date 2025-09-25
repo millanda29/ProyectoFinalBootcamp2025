@@ -66,6 +66,10 @@ const Itineraries = () => {
     }
   }, [authLoading, accessToken, checkExistingPDFs])
 
+  const handleNewTrip = () => {
+    navigate('/itinerary-generator')
+  }
+
   const handleDeleteTrip = async (tripId) => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar este viaje?')) {
       return
@@ -173,7 +177,7 @@ const Itineraries = () => {
             </div>
             <p className="text-gray-600">Gestiona y revisa todos tus itinerarios de viaje</p>
           </div>
-          <Button className="bg-blue-600 hover:bg-blue-700">
+          <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleNewTrip}>
             <Plus className="h-4 w-4 mr-2" />
             Nuevo Viaje
           </Button>
@@ -227,7 +231,7 @@ const Itineraries = () => {
               }
             </p>
             {filter === 'all' && (
-              <Button className="bg-blue-600 hover:bg-blue-700">
+              <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleNewTrip}>
                 <Plus className="h-4 w-4 mr-2" />
                 Crear mi primer viaje
               </Button>
