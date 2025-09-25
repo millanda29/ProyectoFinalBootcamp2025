@@ -1,4 +1,5 @@
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -19,20 +20,22 @@ const reportService = {
 
       // Generar el HTML del reporte
       const html = this.generateTripHTML(trip, user);
-      
-      // Configurar Puppeteer
+
+      // Lanzar Chromium compatible con Render
       const browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
       });
-      
+
       const page = await browser.newPage();
       await page.setContent(html, { waitUntil: 'domcontentloaded' });
-      
+
       // Generar PDF
       const fileName = `trip-${trip._id}-${Date.now()}.pdf`;
       const filePath = path.join(reportsDir, fileName);
-      
+
       await page.pdf({
         path: filePath,
         format: 'A4',
@@ -44,17 +47,17 @@ const reportService = {
           left: '15mm'
         }
       });
-      
+
       await browser.close();
-      
+
       return {
         fileName,
         filePath,
         fileUrl: `/reports/${fileName}` // URL relativa para acceso
       };
-      
+
     } catch (error) {
-      console.error('Error generando PDF:', error);
+      console.error('❌ Error generando PDF:', error);
       throw new Error('Error al generar el reporte PDF');
     }
   },
@@ -63,7 +66,7 @@ const reportService = {
     const startDate = new Date(trip.startDate).toLocaleDateString('es-ES');
     const endDate = new Date(trip.endDate).toLocaleDateString('es-ES');
     const totalBudget = trip.costs.reduce((sum, cost) => sum + (cost.amount * cost.quantity), 0);
-    
+
     return `
     <!DOCTYPE html>
     <html lang="es">
@@ -126,10 +129,6 @@ const reportService = {
           font-size: 1.2em;
         }
         
-        .info-card p {
-          margin: 5px 0;
-        }
-        
         .section {
           margin-bottom: 40px;
         }
@@ -167,17 +166,6 @@ const reportService = {
           border-left: 4px solid #28a745;
         }
         
-        .activity h4 {
-          margin: 0 0 8px 0;
-          color: #333;
-        }
-        
-        .activity-meta {
-          color: #666;
-          font-size: 0.9em;
-          margin-bottom: 5px;
-        }
-        
         .costs-table {
           width: 100%;
           border-collapse: collapse;
@@ -195,10 +183,6 @@ const reportService = {
           background: #667eea;
           color: white;
           font-weight: bold;
-        }
-        
-        .costs-table tr:nth-child(even) {
-          background: #f8f9fa;
         }
         
         .total-row {
@@ -264,9 +248,7 @@ const reportService = {
           <h2>📋 Itinerario Detallado</h2>
           ${trip.itinerary.map(day => `
             <div class="day-card">
-              <div class="day-header">
-                Día ${day.dayNumber}
-              </div>
+              <div class="day-header">Día ${day.dayNumber}</div>
               ${day.notes ? `<p><em>${day.notes}</em></p>` : ''}
               ${day.activities && day.activities.length > 0 ? 
                 day.activities.map(activity => `
@@ -281,7 +263,7 @@ const reportService = {
                     ${activity.location ? `<div class="activity-meta">📍 ${activity.location}</div>` : ''}
                     ${activity.category ? `<div class="activity-meta">🏷️ ${activity.category}</div>` : ''}
                   </div>
-                `).join('') : '<p><em>No hay actividades programadas para este día</em></p>'
+                `).join('') : '<p><em>No hay actividades programadas</em></p>'
               }
             </div>
           `).join('')}
@@ -323,8 +305,8 @@ const reportService = {
         <div class="footer">
           <p>¡Que tengas un excelente viaje! 🧳✈️</p>
           <div class="generated-info">
-            <p>Reporte generado por TravelMate para <strong>${user.fullName}</strong></p>
-            <p>Fecha de generación: ${new Date().toLocaleDateString('es-ES')} a las ${new Date().toLocaleTimeString('es-ES')}</p>
+            <p>Reporte generado para <strong>${user.fullName}</strong></p>
+            <p>Fecha: ${new Date().toLocaleDateString('es-ES')} ${new Date().toLocaleTimeString('es-ES')}</p>
           </div>
         </div>
       </div>
@@ -343,17 +325,6 @@ const reportService = {
     return translations[type] || type;
   },
 
-  async deletePDFFile(filePath) {
-    try {
-      await fs.unlink(filePath);
-      return true;
-    } catch (error) {
-      console.error('Error eliminando archivo PDF:', error);
-      return false;
-    }
-  },
-
-  // Función para eliminar un archivo PDF específico
   async deletePDFFile(fileUrl) {
     try {
       const fileName = path.basename(fileUrl);
@@ -366,7 +337,6 @@ const reportService = {
     }
   },
 
-  // Función para limpiar PDFs huérfanos (opcional, para mantenimiento)
   async cleanOrphanedPDFs(existingReports = []) {
     try {
       const reportsDir = path.join(process.cwd(), 'reports');
