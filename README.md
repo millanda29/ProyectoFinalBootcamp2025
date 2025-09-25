@@ -1,9 +1,16 @@
 # 🌍 TravelMate – Asistente Inteligente de Viajes
-**Desarrollado por:** [Tu Nombre]  
+
+![TravelMate Banner](https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&h=250)
+
+**Desarrollado por:** 
+
+- [Vladimir Castillo](https://github.com/vladimirmcy2005)
+- [Christian Iza](https://github.com/ciizao)
+- [Maikol Llanda](https://github.com/millanda29)
+- [Alex Ramirez](https://github.com/ALISrj)
+
 **Módulo:** Módulo IV - DevOps  
 **Bootcamp de Programación 2025**
-
-![TravelMate Banner](https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80)
 
 ## 📝 Descripción General
 
@@ -35,7 +42,7 @@ TravelMate es una aplicación web completa construida con el stack MERN que ayud
 - **Render** - Despliegue del backend (Web Service)
 - **Vercel** - Despliegue del frontend (Static Site)
 
-## � Instrucciones para Ejecutar Localmente
+## Instrucciones para Ejecutar Localmente
 
 ### Requisitos Previos
 - Node.js v16 o superior
@@ -111,7 +118,7 @@ Dividí la aplicación en dos partes independientes para optimizar el despliegue
 
 **Backend (Render):**
 1. Configuré un Web Service en Render
-2. Especifiqué el comando de inicio: `node index.js`
+2. Especifiqué el comando de inicio: `npm start`
 3. Agregué todas las variables de entorno:
    - MONGO_URI (conexión a MongoDB Atlas)
    - JWT_SECRET y JWT_REFRESH_SECRET
@@ -120,10 +127,10 @@ Dividí la aplicación en dos partes independientes para optimizar el despliegue
 4. Conecté el repositorio para despliegue automático
 
 ### 🌐 Enlaces de la Aplicación Desplegada
-- **Frontend:** [Agrega aquí tu URL de Vercel]
-- **Backend API:** [Agrega aquí tu URL de Render]
+- **Backend API:** [Server_Render](https://proyectofinalbootcamp2025.onrender.com)
+- **Frontend:** [Client_Vercel](https://proyecto-final-bootcamp2025.vercel.app)
 
-## � Desafíos y Soluciones
+## Desafíos y Soluciones
 
 ### Desafío 1: Configuración de CORS
 **Problema:** El frontend desplegado no podía comunicarse con el backend debido a errores de CORS.
@@ -165,9 +172,9 @@ ProyectoFinalBootcamp/
 
 ## 📖 Documentación Adicional
 
-* **Servidor:** Para información detallada del backend, revisa el [README del server](server/README.md)
-* **Cliente:** Para información detallada del frontend, revisa el [README del cliente](client/README.md)
-* **API Endpoints:** Documentación completa disponible en `/api/endpoints` cuando el servidor está ejecutándose
+* **Servidor:** Para información detallada del backend, revisa el [README del server](https://github.com/millanda29/ProyectoFinalBootcamp2025/blob/main/server/README.md)
+* **Cliente:** Para información detallada del frontend, revisa el [README del cliente](https://github.com/millanda29/ProyectoFinalBootcamp2025/blob/main/client/README.md)
+* **API Endpoints:** Documentación completa disponible en ["/api/endpoints"](https://proyectofinalbootcamp2025.onrender.com/api/routes) cuando el servidor está ejecutándose
 
 ---
 
